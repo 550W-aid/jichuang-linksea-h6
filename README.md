@@ -85,6 +85,7 @@ elinx-helper\elinx-compile.cmd bringup_uart_vga
 
 - `main`：FPGA 资料、工具和 eLinx helper。
 - `integration`：预留整合分支，目前保持空内容。
-- `dev/person-1`、`dev/person-2`、`dev/person-3`：预留个人分支，目前保持空内容。
+- `dev/Fang_550W`：Fang_550W 的个人工作分支，由原 `dev/person-1` 改名而来，目前保持空内容。
+- `dev/person-2`、`dev/person-3`：预留个人分支，目前保持空内容。
 
 当前如果只是整理资料、工具和 helper，直接使用 `main` 即可。
