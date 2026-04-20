@@ -1,0 +1,12 @@
+Implementation Status : Successful
+eLinx Version : 3.0 
+Top-level Entity Name : VP_Top
+Total LUTs : 24544 / 136160 (18%)
+Total FFs : 14700 / 136160 (11%)
+Total Memorys : 0 / 1200 (0%)
+Total DSPs : 0 / 48 (0%)
+Total PLLs : 1 / 8 (13%)
+Total CLBs : 2860 / 13616 (21%)
+Total Pins : 102 / 339 (30%)
+Min Slack : 3905
+EndPoints : 14773
