@@ -1,0 +1,13 @@
+VideoProcess.runs/
+db/
+incremental_db/
+VideoProcess.pr/
+*.vcd
+*.vvp
+*.wlf
+*.jou
+*.log
+*.tmp
+*.bak
+*.out
+scripts/sim/out/
