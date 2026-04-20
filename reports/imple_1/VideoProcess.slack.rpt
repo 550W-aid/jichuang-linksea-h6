@@ -1,0 +1,4 @@
+Type	Slack(ns)	Actual Fmax(MHz)
+clock name:sys_clk Fmax:301.568 sync_slack:16.684 async_slack:N/A
+clock name:\pll_1:u_pll_1|altpll:altpll_component|_clk1 Fmax:27.705 sync_slack:3.905 async_slack:N/A
+all_path_min_slack:3.905  all_route_min_slack:3.905
