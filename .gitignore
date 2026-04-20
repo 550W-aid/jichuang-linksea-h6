@@ -14,6 +14,10 @@ __pycache__/
 *.rpt
 *.html
 *.xml
+tmp_*.html
+常见问题.xlsx
+集创亿海微.png
+集创赛-中科亿海微杯/
 build/
 out/
 dist/
