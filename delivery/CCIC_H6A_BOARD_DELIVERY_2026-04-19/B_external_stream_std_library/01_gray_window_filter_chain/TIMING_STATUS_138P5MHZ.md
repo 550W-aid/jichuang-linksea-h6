@@ -3,7 +3,8 @@
 Status:
 - `FAIL`
 - Fresh local timing evidence exists for three consuming tops
-- Not signed off as a board-ready `138.5MHz` chain
+- `gray_window_gaussian_chain_top.v` and `gray_window_sobel_chain_top.v` now pass on the tested single-lane promoted-top boundary
+- `gray_window_median_chain_top.v` still fails, so the chain family is not signed off as a board-ready `138.5MHz` delivery set
 
 Consuming tops used for signoff:
 - `rtl/gray_window_gaussian_chain_top.v`
@@ -25,9 +26,9 @@ Results:
 
 | Module | Top RTL | PASS/FAIL | WNS | TNS | WHS | THS | Likely critical path |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `gaussian3x3_stream_std` | `rtl/gray_window_gaussian_chain_top.v` | `FAIL` | `-1.205ns` | `-2811.878ns` | `0.132ns` | `0.000ns` | `memory seam` |
-| `median3x3_stream_std` | `rtl/gray_window_median_chain_top.v` | `FAIL` | `-1.925ns` | `-3972.344ns` | `0.098ns` | `0.000ns` | `memory seam` |
-| `sobel3x3_stream_std` | `rtl/gray_window_sobel_chain_top.v` | `FAIL` | `-2.307ns` | `-6404.348ns` | `0.176ns` | `0.000ns` | `memory seam` |
+| `gaussian3x3_stream_std` | `rtl/gray_window_gaussian_chain_top.v` | `PASS` | `0.309ns` | `0.000ns` | `0.127ns` | `0.000ns` | `closed on tested boundary after window-buffer refactor` |
+| `median3x3_stream_std` | `rtl/gray_window_median_chain_top.v` | `FAIL` | `-1.566ns` | `-81.746ns` | `0.128ns` | `0.000ns` | `median row-sort compare network` |
+| `sobel3x3_stream_std` | `rtl/gray_window_sobel_chain_top.v` | `PASS` | `1.186ns` | `0.000ns` | `0.098ns` | `0.000ns` | `closed on tested boundary after Sobel pipelining` |
 
 Report path:
 - Gaussian:
@@ -41,11 +42,12 @@ Report path:
 - `timing_runs/gray_window_sobel/timing_setup.rpt`
 
 Current blocker:
-- The shared pressure is not a small arithmetic tail issue.
-- The fresh reports show heavy route-dominated paths around `window3x3_stream_std` storage and the handoff from the line-memory seam into the downstream 3x3 operator.
-- This chain must not be described as `138.5MHz clean` in its current promoted-top form.
+- The shared `window3x3_stream_std` seam is no longer the dominant blocker on the refreshed Gaussian and Sobel promoted tops.
+- The remaining failing top is now `gray_window_median_chain_top.v`.
+- The fresh report shows a route-heavy compare/swap network from `stg0_data_reg[*]` to `stg1_rowsort_reg[*]` inside `median3x3_stream_std`.
+- This family must not be described as a fully signed-off `138.5MHz clean` delivery chain until the median top also passes.
 
 Next action:
-1. Rework `window3x3_stream_std` storage and handoff so the line-memory seam is more timing-friendly.
-2. If promoted again, keep the chain labeled with the actual tested lane boundary.
-3. Re-run fresh OOC timing after the seam is re-pipelined.
+1. Split the `median3x3_stream_std` row-sort network into smaller compare/swap stages instead of keeping the full `sort3_pack` chain in one cycle.
+2. Keep the promoted-chain label limited to the tested `MAX_LANES=1`, `640x480` boundary.
+3. Re-run fresh OOC timing after the median sorting layers are re-pipelined.

@@ -48,8 +48,9 @@ These modules must not be described as `138.5MHz clean` in GitHub handoff notes:
 1. `B_external_stream_std_library/01_gray_window_filter_chain`
    - Promoted tops: `gray_window_gaussian_chain_top.v`, `gray_window_median_chain_top.v`, `gray_window_sobel_chain_top.v`
    - Status: not signed off
-   - Root issue: `window3x3_stream_std` line-memory seam is still route-dominated and fails `138.5MHz`
-   - Required action: re-pipeline or re-architect the line-buffer seam before claiming board-ready closure
+   - Current refreshed state: Gaussian and Sobel promoted tops now pass on the tested single-lane `640x480` OOC boundary, but the family still cannot be handed off because the Median promoted top fails
+   - Root issue: `median3x3_stream_std` still carries a route-heavy row-sort compare network on the `stg0_data_reg[*] -> stg1_rowsort_reg[*]` path
+   - Required action: split the median sorting layers before claiming broader board-ready closure for this family
 
 ## Libraries And Shared Dependencies
 

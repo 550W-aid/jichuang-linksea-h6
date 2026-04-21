@@ -19,9 +19,9 @@ Top-level summary:
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `03_fixed_angle_rotate` | `A_staging_validated_board_ready/03_fixed_angle_rotate/rtl/fixed_angle_rotate_stream_std.v` | `frame-buffer assisted` | `PASS` | `0.287ns` | `0.000ns` | `0.132ns` | `0.000ns` | `closed on tested boundary` | keep frame-buffer-assisted label and re-run only if the consuming boundary changes |
 | `07_affine_wrapper` | `A_staging_validated_board_ready/07_affine_wrapper/rtl/affine_nearest_stream_std.v` | `frame-buffer assisted` | `PASS` | `0.585ns` | `0.000ns` | `0.159ns` | `0.000ns` | `closed on tested boundary` | keep frame-buffer-assisted label and re-run only if the consuming boundary changes |
-| `B/01_gray_window_filter_chain` gaussian | `B_external_stream_std_library/01_gray_window_filter_chain/rtl/gray_window_gaussian_chain_top.v` | `pure stream promoted top` | `FAIL` | `-1.205ns` | `-2811.878ns` | `0.132ns` | `0.000ns` | `memory seam` | re-pipeline `window3x3_stream_std` handoff |
-| `B/01_gray_window_filter_chain` median | `B_external_stream_std_library/01_gray_window_filter_chain/rtl/gray_window_median_chain_top.v` | `pure stream promoted top` | `FAIL` | `-1.925ns` | `-3972.344ns` | `0.098ns` | `0.000ns` | `memory seam` | re-pipeline `window3x3_stream_std` handoff |
-| `B/01_gray_window_filter_chain` sobel | `B_external_stream_std_library/01_gray_window_filter_chain/rtl/gray_window_sobel_chain_top.v` | `pure stream promoted top` | `FAIL` | `-2.307ns` | `-6404.348ns` | `0.176ns` | `0.000ns` | `memory seam` | re-pipeline `window3x3_stream_std` handoff |
+| `B/01_gray_window_filter_chain` gaussian | `B_external_stream_std_library/01_gray_window_filter_chain/rtl/gray_window_gaussian_chain_top.v` | `pure stream promoted top` | `PASS` | `0.309ns` | `0.000ns` | `0.127ns` | `0.000ns` | `closed on tested boundary after shared-window refactor` | keep signoff limited to the promoted single-lane `640x480` boundary |
+| `B/01_gray_window_filter_chain` median | `B_external_stream_std_library/01_gray_window_filter_chain/rtl/gray_window_median_chain_top.v` | `pure stream promoted top` | `FAIL` | `-1.566ns` | `-81.746ns` | `0.128ns` | `0.000ns` | `sorting compare network` | split the `median3x3_stream_std` row-sort network into smaller compare/swap stages |
+| `B/01_gray_window_filter_chain` sobel | `B_external_stream_std_library/01_gray_window_filter_chain/rtl/gray_window_sobel_chain_top.v` | `pure stream promoted top` | `PASS` | `1.186ns` | `0.000ns` | `0.098ns` | `0.000ns` | `closed on tested boundary after Sobel pipelining` | keep signoff limited to the promoted single-lane `640x480` boundary |
 | `B/02_binary_morphology_chain` erode | `B_external_stream_std_library/02_binary_morphology_chain/rtl/gray_threshold_erode_chain_top.v` | `pure stream promoted top` | `PASS` | `0.230ns` | `0.000ns` | `0.191ns` | `0.000ns` | `none on tested boundary` | keep signoff limited to single-lane `640x480` |
 | `B/02_binary_morphology_chain` dilate | `B_external_stream_std_library/02_binary_morphology_chain/rtl/gray_threshold_dilate_chain_top.v` | `pure stream promoted top` | `PASS` | `0.131ns` | `0.000ns` | `0.158ns` | `0.000ns` | `none on tested boundary` | keep signoff limited to single-lane `640x480` |
 | `C/rgb_ycbcr_gamma_rgb` consuming top | `C_shared_dependencies/rtl/rgb_ycbcr_gamma_rgb_chain_top.v` | `pure stream promoted top` | `PASS` | `0.744ns` | `0.000ns` | `0.159ns` | `0.000ns` | `none on tested boundary` | reusable only when the consuming top matches the tested boundary |
@@ -36,7 +36,10 @@ RTL files changed in this work:
 - `delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/B_external_stream_std_library/01_gray_window_filter_chain/rtl/gray_window_sobel_chain_top.v`
 - `delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/B_external_stream_std_library/02_binary_morphology_chain/rtl/gray_threshold_erode_chain_top.v`
 - `delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/B_external_stream_std_library/02_binary_morphology_chain/rtl/gray_threshold_dilate_chain_top.v`
+- `delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/B_external_stream_std_library/01_gray_window_filter_chain/rtl/median3x3_stream_std.v`
+- `delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/B_external_stream_std_library/01_gray_window_filter_chain/rtl/sobel3x3_stream_std.v`
 - `delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/C_shared_dependencies/rtl/rgb_ycbcr_gamma_rgb_chain_top.v`
+- `delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/C_shared_dependencies/rtl/window3x3_stream_std.v`
 
 Fresh report roots used in this update:
 - `timing_runs/fixed_angle_rotate`
@@ -51,4 +54,6 @@ Fresh report roots used in this update:
 Latest closure note:
 - `03_fixed_angle_rotate` is now signed off on the tested OOC boundary after adding a registered request stage and narrowing address/control arithmetic widths.
 - `07_affine_wrapper` is now signed off on the tested OOC boundary after adding a registered affine request stage and narrowing address/control arithmetic widths.
-- The remaining shared blocker in this delivery slice is `window3x3_stream_std`, where the gray-window chains still fail on a route-dominated line-memory seam.
+- `window3x3_stream_std` was refactored into a registered request/response line-buffer structure; that change was enough to pull the promoted Gaussian top clean at `138.5MHz`.
+- `sobel3x3_stream_std` is now signed off on its promoted single-lane consuming top after the gradient chain was split into weighted-sum, absolute-value, and saturation stages.
+- The remaining blocker in this delivery slice is `median3x3_stream_std`, where the first row-sort compare network is still too route-heavy for `138.5MHz`.

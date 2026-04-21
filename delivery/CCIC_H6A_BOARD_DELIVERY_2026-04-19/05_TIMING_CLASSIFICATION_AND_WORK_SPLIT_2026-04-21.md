@@ -1,12 +1,13 @@
-# CCIC H6A 交付模块时序分类与分工（2026-04-21）
+# CCIC H6A Timing Classification And Work Split (2026-04-21)
 
-目标时钟统一为 `138.5MHz`（`period=7.220ns`），器件统一为 `xc7z020clg400-1`。
+Unified signoff target:
+- Device: `xc7z020clg400-1`
+- Clock: `138.5MHz`
+- Constraint: `create_clock -name clk -period 7.220 [get_ports clk]`
 
----
+## 1. Signed Off On The Tested Boundary
 
-## 1) 已签核，可作为 138.5MHz 交付基线
-
-以下模块已经有明确 OOC 签核结论，可作为“已过 138.5MHz”基线：
+These modules now have fresh `138.5MHz` OOC evidence on their stated boundary:
 
 1. `A_staging_validated_board_ready/01_histogram_equalizer/rtl/histogram_equalizer_stream_std.v`
 2. `A_staging_validated_board_ready/02_realtime_resize/rtl/bilinear_resize_realtime_stream_std.v`
@@ -22,70 +23,64 @@
 12. `A_staging_validated_board_ready/07_affine_wrapper/rtl/affine_nearest_stream_std.v`
 13. `A_staging_validated_board_ready/07_affine_wrapper/rtl/affine_nearest_addr_pipe.v`
 
-说明：
-- 顶层签核以各目录下 `TIMING_STATUS_138P5MHZ.md` 为准。
-- `02_realtime_resize` 当前签核边界为 `MAX_LANES=1` 单通道下采样交付路径，不等同于多通道签核。
+Notes:
+- `02_realtime_resize` remains signed off only on its tested single-lane delivery path.
+- `03_fixed_angle_rotate` and `07_affine_wrapper` must keep the honest label `frame-buffer assisted`.
 
----
+## 2. Current Blockers
 
-## 2) 未签核 / 阻塞（必须优先处理）
+These items are still not signed off as of the latest fresh evidence:
 
-当前 A 类原阻塞模块 `03_fixed_angle_rotate` 与 `07_affine_wrapper` 已完成 fresh OOC 复验并转入已签核集合。
+1. `B_external_stream_std_library/01_gray_window_filter_chain/rtl/median3x3_stream_std.v`
+   - Failing promoted top: `B_external_stream_std_library/01_gray_window_filter_chain/rtl/gray_window_median_chain_top.v`
+   - Current result: `WNS=-1.566ns`, `TNS=-81.746ns`, `WHS=0.128ns`, `THS=0.000ns`
+   - Likely blocker: route-heavy row-sort compare network from `stg0_data_reg[*]` to `stg1_rowsort_reg[*]`
+   - Required next action: split the `sort3_pack` work across more compare/swap stages
 
-当前仍不能宣称 “138.5MHz clean” 的重点遗留项为：
+## 3. Promoted B-Library Status
 
-1. `B_external_stream_std_library/01_gray_window_filter_chain/rtl/gaussian3x3_stream_std.v`
-2. `B_external_stream_std_library/01_gray_window_filter_chain/rtl/median3x3_stream_std.v`
-3. `B_external_stream_std_library/01_gray_window_filter_chain/rtl/sobel3x3_stream_std.v`
-   - 问题方向：`window3x3_stream_std` 的 line-memory seam 仍是 route-dominated 结构性瓶颈
+Fresh promoted-top evidence now exists for:
 
----
+1. `B_external_stream_std_library/01_gray_window_filter_chain/rtl/gray_window_gaussian_chain_top.v`
+   - `PASS`
+   - `WNS=0.309ns`, `TNS=0.000ns`, `WHS=0.127ns`, `THS=0.000ns`
+   - Main change that helped: `window3x3_stream_std` line-buffer request/response refactor
+2. `B_external_stream_std_library/01_gray_window_filter_chain/rtl/gray_window_sobel_chain_top.v`
+   - `PASS`
+   - `WNS=1.186ns`, `TNS=0.000ns`, `WHS=0.098ns`, `THS=0.000ns`
+   - Main change that helped: Sobel pipeline split into weighted-sum, absolute-value, and saturation stages
+3. `B_external_stream_std_library/01_gray_window_filter_chain/rtl/gray_window_median_chain_top.v`
+   - `FAIL`
+   - `WNS=-1.566ns`, `TNS=-81.746ns`, `WHS=0.128ns`, `THS=0.000ns`
+   - Main blocker: median row-sort compare network
 
-## 3) 尚未作为独立板级 Top 做 138.5MHz 签核（需队友 Codex 接手）
+These promoted-top results are limited to:
+- `MAX_LANES=1`
+- `IMG_WIDTH=640`
+- `IMG_HEIGHT=480`
 
-这批模块属于库/依赖层，不是已签核板级 Top；如要对外交付，必须逐个约束+实现+出报告。
+They are not multi-lane signoff claims.
 
-### B_external_stream_std_library（待验证）
+## 4. Shared Dependency Status
 
-1. `B_external_stream_std_library/01_gray_window_filter_chain/rtl/gaussian3x3_stream_std.v`
-2. `B_external_stream_std_library/01_gray_window_filter_chain/rtl/median3x3_stream_std.v`
-3. `B_external_stream_std_library/01_gray_window_filter_chain/rtl/sobel3x3_stream_std.v`
-4. `B_external_stream_std_library/02_binary_morphology_chain/rtl/binary_threshold_stream_std.v`
-5. `B_external_stream_std_library/02_binary_morphology_chain/rtl/erode3x3_binary_stream_std.v`
-6. `B_external_stream_std_library/02_binary_morphology_chain/rtl/dilate3x3_binary_stream_std.v`
+`C_shared_dependencies` is still a dependency layer, not a standalone delivery layer.
 
-### C_shared_dependencies（依赖层，需在消费 Top 下验证）
+Fresh current-round consuming-top evidence now exists for:
 
-1. `C_shared_dependencies/rtl/grayscale_stream_std.v`
-2. `C_shared_dependencies/rtl/window3x3_stream_std.v`
-3. `C_shared_dependencies/rtl/frame_latched_u2.v`
-4. `C_shared_dependencies/rtl/frame_latched_s9.v`
-5. `C_shared_dependencies/rtl/frame_latched_affine6_s16.v`
-6. `C_shared_dependencies/rtl/rgb888_to_ycbcr444_stream_std.v`
-7. `C_shared_dependencies/rtl/ycbcr444_luma_gamma_stream_std.v`
-8. `C_shared_dependencies/rtl/ycbcr444_to_rgb888_stream_std.v`
+1. `window3x3_stream_std` under Gaussian promoted top: `PASS`
+2. `window3x3_stream_std` under Sobel promoted top: `PASS`
+3. `window3x3_stream_std` under Median promoted top: `FAIL`
+4. `frame_latched_u2` under rotate top: `PASS`
+5. `frame_latched_affine6_s16` under affine top: `PASS`
+6. `rgb888_to_ycbcr444_stream_std`, `ycbcr444_luma_gamma_stream_std`, `ycbcr444_to_rgb888_stream_std` under `rgb_ycbcr_gamma_rgb_chain_top.v`: `PASS`
 
----
+Rule:
+- Do not claim a dependency is board-ready by itself.
+- Cite the exact consuming top and the exact tested boundary.
+- Any other `window3x3_stream_std` consumer must be re-run after the current refactor before anyone calls it fresh.
 
-## 4) 队友 Codex 接手标准（强制）
+## 5. Recommended Work Split From Here
 
-对“未签核/阻塞/待验证”文件，统一执行：
-
-1. 约束统一为：
-   - `create_clock -name clk -period 7.220 [get_ports clk]`
-   - Device: `xc7z020clg400-1`
-2. 先跑 OOC synth + impl，再给出 `WNS/TNS/WHS/THS`。
-3. 若负裕量或组合链过深：
-   - 拆分乘加地址链，插入流水线寄存器
-   - 避免大体量单 always 组合路径
-   - 帧存储走显式 BRAM/SDRAM 接口
-4. 每个模块产出同目录 `TIMING_STATUS_138P5MHZ.md`，写清是否 PASS、签核边界、报告路径。
-5. 严禁在 RTL 引入仿真语句（`$display/$finish/error/while` 等仿真风格控制语句）。
-
----
-
-## 5) 你本地与队友的分工建议（当前）
-
-- 你本地：继续处理 `02_realtime_resize` 的后续演进（若改动 datapath，需重签核）。
-- 队友 Codex：`03_fixed_angle_rotate`、`07_affine_wrapper` 已完成签核；下一优先级转为 `window3x3_stream_std` 相关 gray-window 链的 138.5MHz 优化。
-
+- Local owner: continue `02_realtime_resize` only if reassigned or if its boundary changes.
+- Codex timing owner: continue on `median3x3_stream_std` until the promoted median top is also clean at `138.5MHz`.
+- Other collaborators: avoid reworking `03_fixed_angle_rotate` and `07_affine_wrapper` unless the consuming boundary changes, because they now have fresh passing evidence.
