@@ -141,6 +141,62 @@ module median3x3_stream_std #(
         end
     endfunction
 
+    // 三数取最大值。
+    function [DATA_W-1:0] max3;
+        input [DATA_W-1:0] a;
+        input [DATA_W-1:0] b;
+        input [DATA_W-1:0] c;
+        reg [DATA_W-1:0] max_ab;
+        begin
+            max_ab = (a > b) ? a : b;
+            max3 = (max_ab > c) ? max_ab : c;
+        end
+    endfunction
+
+    // 三数取最小值。
+    function [DATA_W-1:0] min3;
+        input [DATA_W-1:0] a;
+        input [DATA_W-1:0] b;
+        input [DATA_W-1:0] c;
+        reg [DATA_W-1:0] min_ab;
+        begin
+            min_ab = (a < b) ? a : b;
+            min3 = (min_ab < c) ? min_ab : c;
+        end
+    endfunction
+
+    // 三数取中值（只返回中值，不返回完整排序向量）。
+    function [DATA_W-1:0] median3_from3;
+        input [DATA_W-1:0] a;
+        input [DATA_W-1:0] b;
+        input [DATA_W-1:0] c;
+        reg [DATA_W-1:0] x;
+        reg [DATA_W-1:0] y;
+        reg [DATA_W-1:0] z;
+        reg [DATA_W-1:0] swap_tmp;
+        begin
+            x = a;
+            y = b;
+            z = c;
+            if (x > y) begin
+                swap_tmp = x;
+                x = y;
+                y = swap_tmp;
+            end
+            if (y > z) begin
+                swap_tmp = y;
+                y = z;
+                z = swap_tmp;
+            end
+            if (x > y) begin
+                swap_tmp = x;
+                x = y;
+                y = swap_tmp;
+            end
+            median3_from3 = y;
+        end
+    endfunction
+
     // 第 1 级算法核心：
     // 对 3x3 窗口的三行分别做一次三数排序。
     // 例如：
@@ -184,30 +240,30 @@ module median3x3_stream_std #(
     // 到这里，原来 9 个数的信息被压缩成 3 个候选值，下一拍只需要再做一次三数中值。
     function [DATA_W*3-1:0] extract_median_candidates;
         input [DATA_W*9-1:0] rowsort;
-        reg [DATA_W*3-1:0] row_min_sorted;
-        reg [DATA_W*3-1:0] row_mid_sorted;
-        reg [DATA_W*3-1:0] row_max_sorted;
+        reg [DATA_W-1:0] cand_max_of_min;
+        reg [DATA_W-1:0] cand_med_of_mid;
+        reg [DATA_W-1:0] cand_min_of_max;
         begin
-            row_min_sorted = sort3_pack(
+            cand_max_of_min = max3(
                 tap9(rowsort, 0),
                 tap9(rowsort, 3),
                 tap9(rowsort, 6)
             );
-            row_mid_sorted = sort3_pack(
+            cand_med_of_mid = median3_from3(
                 tap9(rowsort, 1),
                 tap9(rowsort, 4),
                 tap9(rowsort, 7)
             );
-            row_max_sorted = sort3_pack(
+            cand_min_of_max = min3(
                 tap9(rowsort, 2),
                 tap9(rowsort, 5),
                 tap9(rowsort, 8)
             );
 
             extract_median_candidates = {
-                tap3(row_min_sorted, 2), // 三个行最小值里的最大值
-                tap3(row_mid_sorted, 1), // 三个行中值里的中间值
-                tap3(row_max_sorted, 0)  // 三个行最大值里的最小值
+                cand_max_of_min, // 三个行最小值里的最大值
+                cand_med_of_mid, // 三个行中值里的中间值
+                cand_min_of_max  // 三个行最大值里的最小值
             };
         end
     endfunction

@@ -67,16 +67,20 @@ module sobel3x3_stream_std #(
     // Output format: {gx_signed, gy_signed}, each ABS_W bits signed.
     function [ABS_W*2-1:0] sobel_grad_pair;
         input [DATA_W*9-1:0] window;
-        integer p0;
-        integer p1;
-        integer p2;
-        integer p3;
-        integer p5;
-        integer p6;
-        integer p7;
-        integer p8;
-        integer gx;
-        integer gy;
+        reg [DATA_W-1:0] p0;
+        reg [DATA_W-1:0] p1;
+        reg [DATA_W-1:0] p2;
+        reg [DATA_W-1:0] p3;
+        reg [DATA_W-1:0] p5;
+        reg [DATA_W-1:0] p6;
+        reg [DATA_W-1:0] p7;
+        reg [DATA_W-1:0] p8;
+        reg signed [ABS_W:0] gx_pos;
+        reg signed [ABS_W:0] gx_neg;
+        reg signed [ABS_W:0] gy_pos;
+        reg signed [ABS_W:0] gy_neg;
+        reg signed [ABS_W:0] gx;
+        reg signed [ABS_W:0] gy;
         begin
             p0 = tap9(window, 0);
             p1 = tap9(window, 1);
@@ -87,8 +91,13 @@ module sobel3x3_stream_std #(
             p7 = tap9(window, 7);
             p8 = tap9(window, 8);
 
-            gx = -p0 + p2 - (p3 * 2) + (p5 * 2) - p6 + p8;
-            gy =  p0 + (p1 * 2) + p2 - p6 - (p7 * 2) - p8;
+            gx_pos = $signed({1'b0, p2}) + $signed({p5, 1'b0}) + $signed({1'b0, p8});
+            gx_neg = $signed({1'b0, p0}) + $signed({p3, 1'b0}) + $signed({1'b0, p6});
+            gy_pos = $signed({1'b0, p0}) + $signed({p1, 1'b0}) + $signed({1'b0, p2});
+            gy_neg = $signed({1'b0, p6}) + $signed({p7, 1'b0}) + $signed({1'b0, p8});
+
+            gx = gx_pos - gx_neg;
+            gy = gy_pos - gy_neg;
             sobel_grad_pair = {gx[ABS_W-1:0], gy[ABS_W-1:0]};
         end
     endfunction
@@ -96,26 +105,26 @@ module sobel3x3_stream_std #(
     // Input format: {gx_signed, gy_signed}. Output format: {abs_gx, abs_gy}.
     function [ABS_W*2-1:0] grad_to_abs_pair;
         input [ABS_W*2-1:0] grad_pair;
-        integer gx;
-        integer gy;
-        integer abs_gx;
-        integer abs_gy;
+        reg signed [ABS_W-1:0] gx;
+        reg signed [ABS_W-1:0] gy;
+        reg [ABS_W-1:0] abs_gx;
+        reg [ABS_W-1:0] abs_gy;
         begin
             gx = $signed(grad_pair[ABS_W*2-1:ABS_W]);
             gy = $signed(grad_pair[ABS_W-1:0]);
-            abs_gx = (gx < 0) ? -gx : gx;
-            abs_gy = (gy < 0) ? -gy : gy;
+            abs_gx = gx[ABS_W-1] ? (~gx + 1'b1) : gx;
+            abs_gy = gy[ABS_W-1] ? (~gy + 1'b1) : gy;
             grad_to_abs_pair = {abs_gx[ABS_W-1:0], abs_gy[ABS_W-1:0]};
         end
     endfunction
 
     function [DATA_W-1:0] sobel_clip_from_pair;
         input [ABS_W*2-1:0] abs_pair;
-        integer magnitude;
-        integer max_value;
+        reg [ABS_W:0] magnitude;
+        reg [ABS_W:0] max_value;
         begin
             magnitude = abs_pair[ABS_W*2-1:ABS_W] + abs_pair[ABS_W-1:0];
-            max_value = (1 << DATA_W) - 1;
+            max_value = ({{ABS_W{1'b0}}, 1'b1} << DATA_W) - 1'b1;
             if (magnitude > max_value) begin
                 sobel_clip_from_pair = {DATA_W{1'b1}};
             end else begin

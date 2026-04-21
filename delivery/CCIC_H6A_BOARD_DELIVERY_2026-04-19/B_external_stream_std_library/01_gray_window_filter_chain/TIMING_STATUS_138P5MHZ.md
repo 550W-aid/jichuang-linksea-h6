@@ -24,8 +24,8 @@ Results:
 | Module | Top RTL | PASS/FAIL | WNS | TNS | WHS | THS | Current dominant path |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `gaussian3x3_stream_std` | `rtl/gray_window_gaussian_chain_top.v` | `PASS` | `0.424ns` | `0.000ns` | `0.132ns` | `0.000ns` | `window3x3 -> gaussian` interface path |
-| `median3x3_stream_std` | `rtl/gray_window_median_chain_top.v` | `FAIL` | `-2.902ns` | `-151.850ns` | `0.132ns` | `0.000ns` | `stg1_rowsort -> stg2_candidates` in `median3x3_stream_std` |
-| `sobel3x3_stream_std` | `rtl/gray_window_sobel_chain_top.v` | `FAIL` | `-0.934ns` | `-3.855ns` | `0.132ns` | `0.000ns` | `stg0_data -> stg1_grad_pair` in `sobel3x3_stream_std` |
+| `median3x3_stream_std` | `rtl/gray_window_median_chain_top.v` | `FAIL` | `-2.283ns` | `-109.244ns` | `0.090ns` | `0.000ns` | `stg1_rowsort -> stg2_candidates` in `median3x3_stream_std` |
+| `sobel3x3_stream_std` | `rtl/gray_window_sobel_chain_top.v` | `PASS` | `0.563ns` | `0.000ns` | `0.090ns` | `0.000ns` | `closed after fixed-width signed Sobel datapath rewrite` |
 
 Evidence projects:
 - `F:/codex/output/gauss_chain_synth_check_20260421`
@@ -35,8 +35,10 @@ Evidence projects:
 Recent RTL updates in this round:
 1. `sobel3x3_stream_std.v` refactored to three data-path stages (`stg0` input latch + `stg1` gradient + `stg2` absolute + output clip stage).
 2. `median3x3_stream_std.v` added extra result pipeline stage (`stg3` to `m_out`) to shorten the previous tail path.
+3. `sobel3x3_stream_std.v` further switched from integer-heavy math to fixed-width signed datapath (`*2` replaced by shifts), and now closes at `138.5MHz`.
+4. Results above are refreshed after rebase conflict resolution and a fresh rerun with the same `7.220ns` clock constraint.
 
 Next action:
 1. Continue pipelining `median3x3_stream_std` stage-1/stage-2 boundary.
-2. Continue splitting Sobel gradient stage (or add partial-sum stage) to close the remaining `0.934ns` gap.
+2. Focus remaining effort on `median3x3_stream_std` stage-1/stage-2 boundary (currently the only failing top in this chain).
 3. Re-run fresh `7.220ns` timing after each change.
