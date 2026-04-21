@@ -59,7 +59,6 @@ module rgb_ycbcr_gamma_rgb_chain_top (
     wire        gamma_sof_w;
     wire        gamma_eol_w;
     wire        gamma_eof_w;
-    wire signed [8:0] brightness_offset_frame_w;
 
     assign frame_start_commit_w = s_valid && s_ready && s_sof;
 
@@ -71,7 +70,7 @@ module rgb_ycbcr_gamma_rgb_chain_top (
         .cfg_data          (cfg_brightness_offset),
         .frame_start_pulse (frame_start_commit_w),
         .active_data       (active_brightness_offset),
-        .frame_data        (brightness_offset_frame_w)
+        .frame_data        ()
     );
 
     rgb888_to_ycbcr444_stream_std #(
@@ -108,7 +107,7 @@ module rgb_ycbcr_gamma_rgb_chain_top (
         .s_sof            (ycbcr_sof_w),
         .s_eol            (ycbcr_eol_w),
         .s_eof            (ycbcr_eof_w),
-        .brightness_offset(brightness_offset_frame_w),
+        .brightness_offset(active_brightness_offset),
         .m_valid          (gamma_valid_w),
         .m_ready          (gamma_ready_w),
         .m_data           (gamma_data_w),
