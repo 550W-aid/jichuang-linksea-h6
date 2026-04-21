@@ -24,7 +24,7 @@ Results:
 | Module | Top RTL | PASS/FAIL | WNS | TNS | WHS | THS | Current dominant path |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `gaussian3x3_stream_std` | `rtl/gray_window_gaussian_chain_top.v` | `PASS` | `0.424ns` | `0.000ns` | `0.132ns` | `0.000ns` | `window3x3 -> gaussian` interface path |
-| `median3x3_stream_std` | `rtl/gray_window_median_chain_top.v` | `FAIL` | `-2.283ns` | `-109.244ns` | `0.090ns` | `0.000ns` | `stg1_rowsort -> stg2_candidates` in `median3x3_stream_std` |
+| `median3x3_stream_std` | `rtl/gray_window_median_chain_top.v` | `FAIL` | `-1.887ns` | `-90.593ns` | `0.090ns` | `0.000ns` | `stg0_data -> stg1_rowsort` in `median3x3_stream_std` |
 | `sobel3x3_stream_std` | `rtl/gray_window_sobel_chain_top.v` | `PASS` | `0.563ns` | `0.000ns` | `0.090ns` | `0.000ns` | `closed after fixed-width signed Sobel datapath rewrite` |
 
 Evidence projects:
@@ -36,9 +36,10 @@ Recent RTL updates in this round:
 1. `sobel3x3_stream_std.v` refactored to three data-path stages (`stg0` input latch + `stg1` gradient + `stg2` absolute + output clip stage).
 2. `median3x3_stream_std.v` added extra result pipeline stage (`stg3` to `m_out`) to shorten the previous tail path.
 3. `sobel3x3_stream_std.v` further switched from integer-heavy math to fixed-width signed datapath (`*2` replaced by shifts), and now closes at `138.5MHz`.
-4. Results above are refreshed after rebase conflict resolution and a fresh rerun with the same `7.220ns` clock constraint.
+4. `median3x3_stream_std.v` was rewritten into a deeper streaming pipeline (`stg0`~`stg5`) and split the final median compare chain, improving WNS from `-2.283ns` to `-1.887ns`.
+5. Results above are refreshed after rebase conflict resolution and fresh reruns with the same `7.220ns` clock constraint.
 
 Next action:
-1. Continue pipelining `median3x3_stream_std` stage-1/stage-2 boundary.
+1. Continue pipelining `median3x3_stream_std` row-sort stage (`stg0_data -> stg1_rowsort`), which is now the dominant remaining bottleneck.
 2. Focus remaining effort on `median3x3_stream_std` stage-1/stage-2 boundary (currently the only failing top in this chain).
 3. Re-run fresh `7.220ns` timing after each change.
