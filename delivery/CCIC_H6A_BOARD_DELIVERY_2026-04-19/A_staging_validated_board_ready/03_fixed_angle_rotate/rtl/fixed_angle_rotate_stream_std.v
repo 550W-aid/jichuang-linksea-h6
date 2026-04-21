@@ -101,22 +101,8 @@ module fixed_angle_rotate_stream_std #(
         end
     endfunction
 
-    // Count the number of active lanes in one beat.
-    function integer popcount_keep;
-        input [MAX_LANES-1:0] keep_mask;
-        integer keep_idx;
-        begin
-            popcount_keep = 0;
-            for (keep_idx = 0; keep_idx < MAX_LANES; keep_idx = keep_idx + 1) begin
-                if (keep_mask[keep_idx]) begin
-                    popcount_keep = popcount_keep + 1;
-                end
-            end
-        end
-    endfunction
-
     // Report the output frame width for the selected rotation.
-    function integer output_width_for_angle;
+    function [15:0] output_width_for_angle;
         input [1:0] angle_sel;
         begin
             if ((angle_sel == 2'd1) || (angle_sel == 2'd3)) begin
@@ -128,7 +114,7 @@ module fixed_angle_rotate_stream_std #(
     endfunction
 
     // Report the output frame height for the selected rotation.
-    function integer output_height_for_angle;
+    function [15:0] output_height_for_angle;
         input [1:0] angle_sel;
         begin
             if ((angle_sel == 2'd1) || (angle_sel == 2'd3)) begin
@@ -141,13 +127,18 @@ module fixed_angle_rotate_stream_std #(
 
     localparam integer PIXELS      = IMG_WIDTH * IMG_HEIGHT;
     localparam integer INT_ADDR_W  = (PIXELS <= 1) ? 1 : clog2(PIXELS);
+    localparam integer BEAT_COUNT_W = (MAX_LANES <= 1) ? 1 : clog2(MAX_LANES + 1);
     localparam [0:0]   ST_CAPTURE  = 1'b0;
     localparam [0:0]   ST_OUTPUT   = 1'b1;
+    localparam [15:0]  MAX_LANES_U16 = MAX_LANES;
+    localparam [BEAT_COUNT_W-1:0] MAX_LANES_COUNT_W = MAX_LANES;
 
     reg  [0:0]                       state_q;
     reg  [INT_ADDR_W-1:0]            capture_count_q;
     reg  [15:0]                      out_x_q;
     reg  [15:0]                      out_y_q;
+    reg  [15:0]                      issue_out_x_q;
+    reg  [15:0]                      issue_out_y_q;
     reg                              cmd_pending_q;
     reg  [MAX_LANES-1:0]             pending_keep_q;
     reg                              pending_sof_q;
@@ -183,14 +174,25 @@ module fixed_angle_rotate_stream_std #(
 
     wire                             cmd_fire_w;
     wire                             rsp_fire_w;
+    wire                             issue_to_pipe_fire_w;
+    wire                             issue_slot_open_w;
 
     integer lane_idx;
-    integer addr_cursor_v;
-    integer beat_lane_count_v;
-    integer output_width_v;
-    integer output_height_v;
-    integer next_out_x_v;
-    integer next_out_y_v;
+    reg  [INT_ADDR_W:0]               capture_base_v;
+    reg  [INT_ADDR_W:0]               addr_cursor_v;
+    reg  [INT_ADDR_W:0]               capture_next_cursor_v;
+    reg  [BEAT_COUNT_W-1:0]           capture_lane_count_v;
+    reg  [15:0]                       output_width_v;
+    reg  [15:0]                       output_height_v;
+    reg  [15:0]                       remaining_width_v;
+    reg  [BEAT_COUNT_W-1:0]           beat_lane_count_v;
+    reg  [MAX_LANES-1:0]              plan_keep_v;
+    reg                               plan_valid_v;
+    reg                               plan_sof_v;
+    reg                               plan_eol_v;
+    reg                               plan_eof_v;
+    reg  [15:0]                       next_out_x_v;
+    reg  [15:0]                       next_out_y_v;
 
     assign frame_start_commit_w = s_valid && s_ready && s_sof;
     assign output_slot_ready_w  = (~m_valid) || m_ready;
@@ -212,6 +214,8 @@ module fixed_angle_rotate_stream_std #(
     assign cmd_fire_w      = fb_rd_cmd_valid && fb_rd_cmd_ready;
     assign fb_rd_rsp_ready = cmd_pending_q && output_slot_ready_w;
     assign rsp_fire_w      = cmd_pending_q && fb_rd_rsp_valid && fb_rd_rsp_ready;
+    assign issue_to_pipe_fire_w = issue_valid_q && (~cmd_pending_q) && addr_pipe_in_ready_w;
+    assign issue_slot_open_w = (~issue_valid_q) || issue_to_pipe_fire_w;
 
     frame_latched_u2 u_angle_latch (
         .clk               (clk),
@@ -232,11 +236,11 @@ module fixed_angle_rotate_stream_std #(
     ) u_addr_pipe (
         .clk            (clk),
         .rst_n          (rst_n),
-        .in_valid       ((state_q == ST_OUTPUT) && issue_valid_q && (~cmd_pending_q) && addr_pipe_in_ready_w),
+        .in_valid       (issue_valid_q && (~cmd_pending_q)),
         .in_ready       (addr_pipe_in_ready_w),
         .in_angle_sel   (angle_active_w),
-        .in_out_x       (out_x_q),
-        .in_out_y       (out_y_q),
+        .in_out_x       (issue_out_x_q),
+        .in_out_y       (issue_out_y_q),
         .in_keep        (issue_keep_q),
         .in_sof         (issue_sof_q),
         .in_eol         (issue_eol_q),
@@ -256,56 +260,62 @@ module fixed_angle_rotate_stream_std #(
 
     // Prepare external write addresses and output-beat planning metadata.
     always @* begin
-        addr_cursor_v        = s_sof ? 0 : capture_count_q;
+        capture_base_v       = s_sof ? {(INT_ADDR_W+1){1'b0}} : {1'b0, capture_count_q};
+        addr_cursor_v        = capture_base_v;
+        capture_next_cursor_v = capture_base_v;
+        capture_lane_count_v = {BEAT_COUNT_W{1'b0}};
         wr_addr_q            = {MAX_LANES*FB_ADDR_W{1'b0}};
         capture_count_next_q = capture_count_q;
 
         output_width_v     = output_width_for_angle(angle_active_w);
         output_height_v    = output_height_for_angle(angle_active_w);
-        beat_lane_count_v  = output_width_v - out_x_q;
-        issue_keep_q       = {MAX_LANES{1'b0}};
-        issue_valid_q      = 1'b0;
-        issue_sof_q        = 1'b0;
-        issue_eol_q        = 1'b0;
-        issue_eof_q        = 1'b0;
-        issue_next_out_x_q = out_x_q;
-        issue_next_out_y_q = out_y_q;
+        remaining_width_v  = 16'd0;
+        beat_lane_count_v  = {BEAT_COUNT_W{1'b0}};
+        plan_keep_v        = {MAX_LANES{1'b0}};
+        plan_valid_v       = 1'b0;
+        plan_sof_v         = 1'b0;
+        plan_eol_v         = 1'b0;
+        plan_eof_v         = 1'b0;
+        next_out_x_v       = out_x_q;
+        next_out_y_v       = out_y_q;
 
-        if (beat_lane_count_v > MAX_LANES) begin
-            beat_lane_count_v = MAX_LANES;
-        end
-        if (beat_lane_count_v < 0) begin
-            beat_lane_count_v = 0;
+        if (out_x_q < output_width_v) begin
+            remaining_width_v = output_width_v - out_x_q;
+            if (remaining_width_v >= MAX_LANES_U16) begin
+                beat_lane_count_v = MAX_LANES_COUNT_W;
+            end else begin
+                beat_lane_count_v = remaining_width_v[BEAT_COUNT_W-1:0];
+            end
         end
 
         for (lane_idx = 0; lane_idx < MAX_LANES; lane_idx = lane_idx + 1) begin
             if (s_keep[lane_idx]) begin
                 wr_addr_q[lane_idx*FB_ADDR_W +: FB_ADDR_W] =
                     {{(FB_ADDR_W-INT_ADDR_W){1'b0}}, addr_cursor_v[INT_ADDR_W-1:0]};
-                addr_cursor_v = addr_cursor_v + 1;
+                addr_cursor_v = addr_cursor_v + {{INT_ADDR_W{1'b0}}, 1'b1};
+                capture_lane_count_v = capture_lane_count_v + {{(BEAT_COUNT_W-1){1'b0}}, 1'b1};
             end
         end
-        capture_count_next_q = addr_cursor_v[INT_ADDR_W-1:0];
+        capture_next_cursor_v = capture_base_v + {{(INT_ADDR_W+1-BEAT_COUNT_W){1'b0}}, capture_lane_count_v};
+        capture_count_next_q = capture_next_cursor_v[INT_ADDR_W-1:0];
 
-        if ((state_q == ST_OUTPUT) && (beat_lane_count_v > 0)) begin
-            issue_valid_q = 1'b1;
+        if ((state_q == ST_OUTPUT) && (out_y_q < output_height_v) && (beat_lane_count_v != {BEAT_COUNT_W{1'b0}})) begin
+            plan_valid_v = 1'b1;
             for (lane_idx = 0; lane_idx < MAX_LANES; lane_idx = lane_idx + 1) begin
                 if (lane_idx < beat_lane_count_v) begin
-                    issue_keep_q[lane_idx] = 1'b1;
+                    plan_keep_v[lane_idx] = 1'b1;
                 end
             end
-            issue_sof_q = (out_x_q == 16'd0) && (out_y_q == 16'd0);
-            issue_eol_q = ((out_x_q + beat_lane_count_v) >= output_width_v);
-            issue_eof_q = (out_y_q == (output_height_v - 1)) && issue_eol_q;
-            if (issue_eol_q) begin
-                next_out_x_v = 0;
+            plan_sof_v = (out_x_q == 16'd0) && (out_y_q == 16'd0);
+            plan_eol_v = (remaining_width_v <= MAX_LANES_U16);
+            plan_eof_v = (out_y_q == (output_height_v - 16'd1)) && plan_eol_v;
+            if (plan_eol_v) begin
+                next_out_x_v = 16'd0;
                 next_out_y_v = out_y_q + 1;
             end else begin
-                next_out_x_v = out_x_q + beat_lane_count_v;
+                next_out_x_v = out_x_q + {{(16-BEAT_COUNT_W){1'b0}}, beat_lane_count_v};
                 next_out_y_v = out_y_q;
             end
-            issue_next_out_x_q = next_out_x_v[15:0];
-            issue_next_out_y_q = next_out_y_v[15:0];
         end
     end
 
@@ -316,6 +326,15 @@ module fixed_angle_rotate_stream_std #(
             capture_count_q      <= {INT_ADDR_W{1'b0}};
             out_x_q              <= 16'd0;
             out_y_q              <= 16'd0;
+            issue_out_x_q        <= 16'd0;
+            issue_out_y_q        <= 16'd0;
+            issue_keep_q         <= {MAX_LANES{1'b0}};
+            issue_valid_q        <= 1'b0;
+            issue_sof_q          <= 1'b0;
+            issue_eol_q          <= 1'b0;
+            issue_eof_q          <= 1'b0;
+            issue_next_out_x_q   <= 16'd0;
+            issue_next_out_y_q   <= 16'd0;
             cmd_pending_q        <= 1'b0;
             pending_keep_q       <= {MAX_LANES{1'b0}};
             pending_sof_q        <= 1'b0;
@@ -340,6 +359,22 @@ module fixed_angle_rotate_stream_std #(
                 end
             end
 
+            if ((state_q == ST_OUTPUT) && issue_slot_open_w && (~cmd_pending_q) && plan_valid_v) begin
+                issue_out_x_q      <= out_x_q;
+                issue_out_y_q      <= out_y_q;
+                issue_keep_q       <= plan_keep_v;
+                issue_valid_q      <= 1'b1;
+                issue_sof_q        <= plan_sof_v;
+                issue_eol_q        <= plan_eol_v;
+                issue_eof_q        <= plan_eof_v;
+                issue_next_out_x_q <= next_out_x_v;
+                issue_next_out_y_q <= next_out_y_v;
+                out_x_q            <= next_out_x_v;
+                out_y_q            <= next_out_y_v;
+            end else if (issue_to_pipe_fire_w) begin
+                issue_valid_q <= 1'b0;
+            end
+
             if (cmd_fire_w) begin
                 cmd_pending_q        <= 1'b1;
                 pending_keep_q       <= addr_pipe_out_keep_w;
@@ -348,8 +383,6 @@ module fixed_angle_rotate_stream_std #(
                 pending_eof_q        <= addr_pipe_out_eof_w;
                 pending_next_out_x_q <= addr_pipe_out_next_out_x_w;
                 pending_next_out_y_q <= addr_pipe_out_next_out_y_w;
-                out_x_q              <= addr_pipe_out_next_out_x_w;
-                out_y_q              <= addr_pipe_out_next_out_y_w;
             end
 
             if (output_slot_ready_w) begin
@@ -372,6 +405,7 @@ module fixed_angle_rotate_stream_std #(
                         capture_count_q <= {INT_ADDR_W{1'b0}};
                         out_x_q         <= 16'd0;
                         out_y_q         <= 16'd0;
+                        issue_valid_q   <= 1'b0;
                     end
                 end else begin
                     m_valid <= 1'b0;

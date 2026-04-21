@@ -83,6 +83,8 @@ module affine_nearest_addr_pipe #(
 
     localparam integer PIXELS     = IMG_WIDTH * IMG_HEIGHT;
     localparam integer INT_ADDR_W = (PIXELS <= 1) ? 1 : clog2(PIXELS);
+    localparam [15:0]  IMG_WIDTH_U16 = IMG_WIDTH;
+    localparam [15:0]  IMG_HEIGHT_U16 = IMG_HEIGHT;
 
     reg                             stage0_valid_q;
     reg  signed [MAX_LANES*48-1:0]  stage0_mul_m00x_q;
@@ -125,12 +127,12 @@ module affine_nearest_addr_pipe #(
     wire stage0_advance_w;
 
     integer lane_idx;
-    integer lane_x_v;
-    integer out_y_v;
-    integer row_base_v;
-    integer addr_v;
-    integer src_x_int_v;
-    integer src_y_int_v;
+    reg  [15:0] lane_x_v;
+    reg  [15:0] out_y_v;
+    reg  [INT_ADDR_W:0] row_base_v;
+    reg  [INT_ADDR_W:0] addr_v;
+    reg  signed [31:0] src_x_int_v;
+    reg  signed [31:0] src_y_int_v;
     reg signed [47:0] src_x_fixed_v;
     reg signed [47:0] src_y_fixed_v;
 
@@ -264,8 +266,8 @@ module affine_nearest_addr_pipe #(
                     src_x_int_v = $signed(stage1_src_x_int_q[lane_idx*32 +: 32]);
                     src_y_int_v = $signed(stage1_src_y_int_q[lane_idx*32 +: 32]);
                     if (stage1_keep_q[lane_idx] &&
-                        (src_x_int_v >= 0) && (src_x_int_v < IMG_WIDTH) &&
-                        (src_y_int_v >= 0) && (src_y_int_v < IMG_HEIGHT)) begin
+                        (src_x_int_v >= 0) && (src_x_int_v < IMG_WIDTH_U16) &&
+                        (src_y_int_v >= 0) && (src_y_int_v < IMG_HEIGHT_U16)) begin
                         row_base_v = src_y_int_v * IMG_WIDTH;
                         stage2_row_base_q[lane_idx*INT_ADDR_W +: INT_ADDR_W] <= row_base_v[INT_ADDR_W-1:0];
                         stage2_src_x_q[lane_idx*16 +: 16] <= src_x_int_v[15:0];

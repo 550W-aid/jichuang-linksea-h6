@@ -1,9 +1,9 @@
 # Timing Status: 07_affine_wrapper
 
 Status:
-- `FAIL`
+- `PASS`
 - `FRAME-BUFFER ASSISTED`, not pure video stream
-- Fresh local timing evidence exists, but this module is not `138.5MHz clean`
+- Fresh local timing evidence clears this module for the tested `138.5MHz` boundary below
 
 Top RTL:
 - `rtl/affine_nearest_stream_std.v`
@@ -21,9 +21,9 @@ Signoff boundary:
 - Shared dependency used in the tested top: `C_shared_dependencies/rtl/frame_latched_affine6_s16.v`
 
 Result:
-- `WNS=-2.760ns`
-- `TNS=-175.336ns`
-- `WHS=0.161ns`
+- `WNS=0.585ns`
+- `TNS=0.000ns`
+- `WHS=0.159ns`
 - `THS=0.000ns`
 
 Report path:
@@ -32,14 +32,12 @@ Report path:
 - `timing_runs/affine_nearest/timing_hold.rpt`
 - `timing_runs/affine_nearest/utilization.rpt`
 
-Current blocker:
-- Primary critical-path type: `coordinate math`
-- Secondary pressure: `address generation`
-- Worst setup paths are concentrated on the affine request side:
-- `out_x_q_reg[*] -> u_addr_pipe/stage0_next_out_y_q_reg[*]`
-- The current raster-walk metadata still drives too much next-coordinate and affine request preparation in one cycle before the address pipe register boundary
+Closure note:
+- The previous `coordinate math` and request-side `address generation` failures were removed by:
+- adding a registered affine request/issue boundary ahead of `affine_nearest_addr_pipe`
+- moving raster-walker advancement to request load time
+- narrowing capture/address/control intermediates to explicit widths instead of broad `integer` arithmetic
 
 Next action:
-1. Add a registered affine-request issue stage between the output raster walker and `affine_nearest_addr_pipe`.
-2. Keep coordinate transform stages split from final read-address issue logic.
-3. Re-run fresh `138.5MHz` OOC timing after the request-side latency contract is tightened.
+1. Keep the module labeled as `frame-buffer assisted` in integration notes.
+2. Re-run timing if the consuming boundary changes from this exact OOC top or if the memory seam contract changes.

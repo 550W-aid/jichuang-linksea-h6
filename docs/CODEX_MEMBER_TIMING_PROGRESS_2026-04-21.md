@@ -17,8 +17,8 @@ Top-level summary:
 
 | Module or promoted chain | Top RTL | Pure stream or frame-buffer assisted | 138.5MHz result | WNS | TNS | WHS | THS | Main bottleneck | Next action |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `03_fixed_angle_rotate` | `A_staging_validated_board_ready/03_fixed_angle_rotate/rtl/fixed_angle_rotate_stream_std.v` | `frame-buffer assisted` | `FAIL` | `-5.028ns` | `-605.641ns` | `0.146ns` | `0.000ns` | `address generation` | add another registered issue stage and split capture/write address progression |
-| `07_affine_wrapper` | `A_staging_validated_board_ready/07_affine_wrapper/rtl/affine_nearest_stream_std.v` | `frame-buffer assisted` | `FAIL` | `-2.760ns` | `-175.336ns` | `0.161ns` | `0.000ns` | `coordinate math` | register the affine request issue boundary before the address pipe |
+| `03_fixed_angle_rotate` | `A_staging_validated_board_ready/03_fixed_angle_rotate/rtl/fixed_angle_rotate_stream_std.v` | `frame-buffer assisted` | `PASS` | `0.287ns` | `0.000ns` | `0.132ns` | `0.000ns` | `closed on tested boundary` | keep frame-buffer-assisted label and re-run only if the consuming boundary changes |
+| `07_affine_wrapper` | `A_staging_validated_board_ready/07_affine_wrapper/rtl/affine_nearest_stream_std.v` | `frame-buffer assisted` | `PASS` | `0.585ns` | `0.000ns` | `0.159ns` | `0.000ns` | `closed on tested boundary` | keep frame-buffer-assisted label and re-run only if the consuming boundary changes |
 | `B/01_gray_window_filter_chain` gaussian | `B_external_stream_std_library/01_gray_window_filter_chain/rtl/gray_window_gaussian_chain_top.v` | `pure stream promoted top` | `FAIL` | `-1.205ns` | `-2811.878ns` | `0.132ns` | `0.000ns` | `memory seam` | re-pipeline `window3x3_stream_std` handoff |
 | `B/01_gray_window_filter_chain` median | `B_external_stream_std_library/01_gray_window_filter_chain/rtl/gray_window_median_chain_top.v` | `pure stream promoted top` | `FAIL` | `-1.925ns` | `-3972.344ns` | `0.098ns` | `0.000ns` | `memory seam` | re-pipeline `window3x3_stream_std` handoff |
 | `B/01_gray_window_filter_chain` sobel | `B_external_stream_std_library/01_gray_window_filter_chain/rtl/gray_window_sobel_chain_top.v` | `pure stream promoted top` | `FAIL` | `-2.307ns` | `-6404.348ns` | `0.176ns` | `0.000ns` | `memory seam` | re-pipeline `window3x3_stream_std` handoff |
@@ -47,3 +47,8 @@ Fresh report roots used in this update:
 - `timing_runs/gray_threshold_erode`
 - `timing_runs/gray_threshold_dilate`
 - `timing_runs/rgb_ycbcr_gamma_rgb`
+
+Latest closure note:
+- `03_fixed_angle_rotate` is now signed off on the tested OOC boundary after adding a registered request stage and narrowing address/control arithmetic widths.
+- `07_affine_wrapper` is now signed off on the tested OOC boundary after adding a registered affine request stage and narrowing address/control arithmetic widths.
+- The remaining shared blocker in this delivery slice is `window3x3_stream_std`, where the gray-window chains still fail on a route-dominated line-memory seam.

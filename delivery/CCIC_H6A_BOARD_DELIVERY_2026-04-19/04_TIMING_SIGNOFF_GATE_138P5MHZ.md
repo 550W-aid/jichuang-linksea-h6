@@ -4,7 +4,7 @@ Target:
 - Device: `xc7z020clg400-1`
 - Clock: `138.5MHz`
 - Constraint: `create_clock -name clk -period 7.220 [get_ports clk]`
-- Method: Vivado 2024.2 OOC synth/place/route
+- Method: fresh local `Vivado 2018.3` OOC synth/place/route evidence
 
 Use this file as the timing gate for GitHub collaborators.
 
@@ -30,21 +30,26 @@ Only the following modules are currently cleared for board handoff at `138.5MHz`
 5. `A_staging_validated_board_ready/06_guided_filter`
    - Top RTL: `guided_filter_3x3_stream_std.v`
    - Result: `setup_wns=0.165ns`, `hold_whs=0.132ns`
+6. `A_staging_validated_board_ready/03_fixed_angle_rotate`
+   - Top RTL: `fixed_angle_rotate_stream_std.v`
+   - Supporting RTL: `fixed_angle_rotate_addr_pipe.v`
+   - Result: `setup_wns=0.287ns`, `hold_whs=0.132ns`
+   - Signoff boundary: frame-buffer-assisted shell with explicit external memory seam
+7. `A_staging_validated_board_ready/07_affine_wrapper`
+   - Top RTL: `affine_nearest_stream_std.v`
+   - Supporting RTL: `affine_nearest_addr_pipe.v`
+   - Result: `setup_wns=0.585ns`, `hold_whs=0.159ns`
+   - Signoff boundary: frame-buffer-assisted shell with explicit external memory seam
 
 ## Not Signed Off / Do Not Handoff As 138.5MHz Clean
 
 These modules must not be described as `138.5MHz clean` in GitHub handoff notes:
 
-1. `A_staging_validated_board_ready/03_fixed_angle_rotate`
-   - Top RTL: `fixed_angle_rotate_stream_std.v`
-   - Status: blocked before timing signoff
-   - Root issue: frame-sized storage architecture is not synthesizable in current form
-   - Required action: redesign around explicit BRAM/SDRAM frame-store architecture; do not treat as a pure one-pass video stream block
-2. `A_staging_validated_board_ready/07_affine_wrapper`
-   - Top RTL: `affine_nearest_stream_std.v`
+1. `B_external_stream_std_library/01_gray_window_filter_chain`
+   - Promoted tops: `gray_window_gaussian_chain_top.v`, `gray_window_median_chain_top.v`, `gray_window_sobel_chain_top.v`
    - Status: not signed off
-   - Root issue: architecture still depends on frame-style readback assumptions
-   - Required action: external memory seam plus pipelined coordinate pipeline and explicit latency contract
+   - Root issue: `window3x3_stream_std` line-memory seam is still route-dominated and fails `138.5MHz`
+   - Required action: re-pipeline or re-architect the line-buffer seam before claiming board-ready closure
 
 ## Libraries And Shared Dependencies
 
@@ -69,4 +74,4 @@ If you pick up any blocked module, follow these rules:
 5. Put timing evidence next to the module before asking others to integrate it.
 
 Primary evidence summary is tracked in:
-- `docs/TIMING_STATUS_2026-04-20.md`
+- `docs/CODEX_MEMBER_TIMING_PROGRESS_2026-04-21.md`

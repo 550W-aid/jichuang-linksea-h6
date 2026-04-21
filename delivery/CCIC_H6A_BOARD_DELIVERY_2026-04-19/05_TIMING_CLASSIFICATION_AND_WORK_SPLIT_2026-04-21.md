@@ -17,6 +17,10 @@
 7. `A_staging_validated_board_ready/05_bilateral_filter/rtl/u16_u10_div_pipe8.v`
 8. `A_staging_validated_board_ready/06_guided_filter/rtl/guided_filter_3x3_stream_std.v`
 9. `A_staging_validated_board_ready/06_guided_filter/rtl/guided_filter_3x3_core.v`
+10. `A_staging_validated_board_ready/03_fixed_angle_rotate/rtl/fixed_angle_rotate_stream_std.v`
+11. `A_staging_validated_board_ready/03_fixed_angle_rotate/rtl/fixed_angle_rotate_addr_pipe.v`
+12. `A_staging_validated_board_ready/07_affine_wrapper/rtl/affine_nearest_stream_std.v`
+13. `A_staging_validated_board_ready/07_affine_wrapper/rtl/affine_nearest_addr_pipe.v`
 
 说明：
 - 顶层签核以各目录下 `TIMING_STATUS_138P5MHZ.md` 为准。
@@ -26,14 +30,14 @@
 
 ## 2) 未签核 / 阻塞（必须优先处理）
 
-以下模块不能宣称 “138.5MHz clean”，需要架构与流水线联合优化：
+当前 A 类原阻塞模块 `03_fixed_angle_rotate` 与 `07_affine_wrapper` 已完成 fresh OOC 复验并转入已签核集合。
 
-1. `A_staging_validated_board_ready/03_fixed_angle_rotate/rtl/fixed_angle_rotate_stream_std.v`
-   - 状态：阻塞（先有可综合性问题，再谈时序）
-   - 问题方向：帧级存储结构需改为显式 BRAM/SDRAM seam，不能继续用不可收敛的大数组风格
-2. `A_staging_validated_board_ready/07_affine_wrapper/rtl/affine_nearest_stream_std.v`
-   - 状态：未签核
-   - 问题方向：坐标变换与地址链路需进一步流水化；stream shell 与 memory-backed sampler 要彻底解耦并定义延迟契约
+当前仍不能宣称 “138.5MHz clean” 的重点遗留项为：
+
+1. `B_external_stream_std_library/01_gray_window_filter_chain/rtl/gaussian3x3_stream_std.v`
+2. `B_external_stream_std_library/01_gray_window_filter_chain/rtl/median3x3_stream_std.v`
+3. `B_external_stream_std_library/01_gray_window_filter_chain/rtl/sobel3x3_stream_std.v`
+   - 问题方向：`window3x3_stream_std` 的 line-memory seam 仍是 route-dominated 结构性瓶颈
 
 ---
 
@@ -83,5 +87,5 @@
 ## 5) 你本地与队友的分工建议（当前）
 
 - 你本地：继续处理 `02_realtime_resize` 的后续演进（若改动 datapath，需重签核）。
-- 队友 Codex：优先接手 `03_fixed_angle_rotate`、`07_affine_wrapper`，随后覆盖 B/C 目录的 138.5MHz 验证与流水线优化。
+- 队友 Codex：`03_fixed_angle_rotate`、`07_affine_wrapper` 已完成签核；下一优先级转为 `window3x3_stream_std` 相关 gray-window 链的 138.5MHz 优化。
 

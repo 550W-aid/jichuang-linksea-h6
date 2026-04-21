@@ -19,7 +19,8 @@ Evidence under consuming tops:
 | `grayscale_stream_std` in threshold morphology path | `B_external_stream_std_library/02_binary_morphology_chain/rtl/gray_threshold_erode_chain_top.v` | `PASS` | `0.230ns` | `0.000ns` | `0.191ns` | `0.000ns` | passes under promoted single-lane morphology top |
 | `grayscale_stream_std` in threshold morphology path | `B_external_stream_std_library/02_binary_morphology_chain/rtl/gray_threshold_dilate_chain_top.v` | `PASS` | `0.131ns` | `0.000ns` | `0.158ns` | `0.000ns` | passes under promoted single-lane morphology top |
 | `window3x3_stream_std` feeding gray-window chains | `B_external_stream_std_library/01_gray_window_filter_chain/rtl/gray_window_gaussian_chain_top.v` and peers | `FAIL` | `-1.205ns` to `-2.307ns` | non-zero negative | positive hold | `0.000ns` | current memory seam is the main blocker |
-| `frame_latched_u2`, `frame_latched_affine6_s16` | `03_fixed_angle_rotate` and `07_affine_wrapper` frame-buffer-assisted tops | `FAIL` | top-level fail | top-level fail | positive hold | `0.000ns` | helper latches are not signed off separately from the consuming shell |
+| `frame_latched_u2` | `A_staging_validated_board_ready/03_fixed_angle_rotate/rtl/fixed_angle_rotate_stream_std.v` | `PASS` | `0.287ns` | `0.000ns` | `0.132ns` | `0.000ns` | passes only as part of the tested frame-buffer-assisted rotate top |
+| `frame_latched_affine6_s16` | `A_staging_validated_board_ready/07_affine_wrapper/rtl/affine_nearest_stream_std.v` | `PASS` | `0.585ns` | `0.000ns` | `0.159ns` | `0.000ns` | passes only as part of the tested frame-buffer-assisted affine top |
 
 Rule for collaborators:
 1. Timing signoff belongs to the consuming top, not to this folder alone.

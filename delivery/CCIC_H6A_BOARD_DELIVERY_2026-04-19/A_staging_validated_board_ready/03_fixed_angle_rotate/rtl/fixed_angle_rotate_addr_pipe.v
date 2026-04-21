@@ -71,6 +71,8 @@ module fixed_angle_rotate_addr_pipe #(
 
     localparam integer PIXELS     = IMG_WIDTH * IMG_HEIGHT;
     localparam integer INT_ADDR_W = (PIXELS <= 1) ? 1 : clog2(PIXELS);
+    localparam [15:0]  IMG_WIDTH_U16 = IMG_WIDTH;
+    localparam [15:0]  IMG_HEIGHT_U16 = IMG_HEIGHT;
 
     reg                            stage0_valid_q;
     reg  [MAX_LANES*16-1:0]        stage0_src_x_q;
@@ -97,11 +99,11 @@ module fixed_angle_rotate_addr_pipe #(
     wire stage0_advance_w;
 
     integer lane_idx;
-    integer lane_x_v;
-    integer src_x_v;
-    integer src_y_v;
-    integer row_base_v;
-    integer addr_v;
+    reg  [15:0] lane_x_v;
+    reg  [15:0] src_x_v;
+    reg  [15:0] src_y_v;
+    reg  [INT_ADDR_W:0] row_base_v;
+    reg  [INT_ADDR_W:0] addr_v;
 
     assign stage2_ready_w  = (~out_valid) || out_ready;
     assign stage1_ready_w  = (~stage1_valid_q) || stage2_ready_w;
@@ -134,14 +136,14 @@ module fixed_angle_rotate_addr_pipe #(
                     case (in_angle_sel)
                         2'd1: begin
                             src_x_v = in_out_y;
-                            src_y_v = (IMG_HEIGHT - 1) - lane_x_v;
+                            src_y_v = (IMG_HEIGHT_U16 - 16'd1) - lane_x_v;
                         end
                         2'd2: begin
-                            src_x_v = (IMG_WIDTH - 1) - lane_x_v;
-                            src_y_v = (IMG_HEIGHT - 1) - in_out_y;
+                            src_x_v = (IMG_WIDTH_U16 - 16'd1) - lane_x_v;
+                            src_y_v = (IMG_HEIGHT_U16 - 16'd1) - in_out_y;
                         end
                         2'd3: begin
-                            src_x_v = (IMG_WIDTH - 1) - in_out_y;
+                            src_x_v = (IMG_WIDTH_U16 - 16'd1) - in_out_y;
                             src_y_v = lane_x_v;
                         end
                         default: begin
@@ -227,7 +229,8 @@ module fixed_angle_rotate_addr_pipe #(
                 for (lane_idx = 0; lane_idx < MAX_LANES; lane_idx = lane_idx + 1) begin
                     addr_v = stage1_row_base_q[lane_idx*INT_ADDR_W +: INT_ADDR_W] +
                              stage1_src_x_q[lane_idx*16 +: 16];
-                    out_addr[lane_idx*FB_ADDR_W +: FB_ADDR_W] <= {{(FB_ADDR_W-INT_ADDR_W){1'b0}}, addr_v[INT_ADDR_W-1:0]};
+                    out_addr[lane_idx*FB_ADDR_W +: FB_ADDR_W] <=
+                        {{(FB_ADDR_W-INT_ADDR_W){1'b0}}, addr_v[INT_ADDR_W-1:0]};
                 end
             end else begin
                 out_addr       <= {MAX_LANES*FB_ADDR_W{1'b0}};
