@@ -38,3 +38,7 @@ linksea_h6_env/
 *.rar
 *.7z
 *.exe
+
+# Allow checked-in reference RTL under main
+!references/
+!references/**
