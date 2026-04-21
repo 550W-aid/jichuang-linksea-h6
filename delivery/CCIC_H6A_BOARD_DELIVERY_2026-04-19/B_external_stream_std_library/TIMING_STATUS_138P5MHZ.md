@@ -9,13 +9,13 @@ Target:
 - Device: `xc7z020clg400-1`
 - Clock: `138.5MHz`
 - Constraint: `create_clock -name clk -period 7.220 [get_ports clk]`
-- Tool used for this fresh local evidence: `Vivado 2018.3 OOC synth/place/route`
+- Tool used for current local evidence: `Vivado 2024.2` (OOC synthesis timing summary)
 
 Summary by promoted chain:
 
 | Subdirectory | PASS/FAIL | Boundary | Main note |
 | --- | --- | --- | --- |
-| `01_gray_window_filter_chain` | `FAIL` | `MAX_LANES=1`, `640x480` | `window3x3_stream_std` memory seam still too slow |
+| `01_gray_window_filter_chain` | `PARTIAL PASS` | `MAX_LANES=1`, `640x480` | Gaussian path passes; median/sobel still need extra pipeline |
 | `02_binary_morphology_chain` | `PASS` | `MAX_LANES=1`, `640x480` | clean only for this tested single-lane consuming-top boundary |
 
 Rule for collaborators:
