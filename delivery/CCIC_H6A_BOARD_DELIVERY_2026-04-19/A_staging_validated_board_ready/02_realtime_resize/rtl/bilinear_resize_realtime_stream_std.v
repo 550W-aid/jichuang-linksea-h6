@@ -81,6 +81,14 @@ module bilinear_resize_realtime_stream_std #(
     reg [15:0]    out_y_q;
     reg [31:0]    src_x_fp_q;
     reg [31:0]    src_y_fp_q;
+    // Registered source-coordinate decode stage.
+    // This breaks the direct timing arc from src_* accumulators into emit/issue payload selection.
+    reg [15:0]    src_x0_q;
+    reg [15:0]    src_x1_q;
+    reg [15:0]    src_y0_q;
+    reg [15:0]    src_y1_q;
+    reg [7:0]     src_fx_q;
+    reg [7:0]     src_fy_q;
 
     // Runtime configuration is frame-latched at SOF.
     reg [15:0]    active_out_width_q;
@@ -165,12 +173,12 @@ module bilinear_resize_realtime_stream_std #(
     assign cfg_scale_y_sanitized_w    = (cfg_scale_y_fp == 32'd0) ? DEFAULT_SCALE_Y_FP :
                                         ((cfg_scale_y_fp < MIN_SCALE_FP) ? MIN_SCALE_FP : cfg_scale_y_fp);
 
-    assign curr_src_x0_w = src_x_fp_q[31:16];
-    assign curr_src_y0_w = src_y_fp_q[31:16];
-    assign curr_src_x1_w = (curr_src_x0_w >= (IMG_WIDTH  - 1)) ? (IMG_WIDTH  - 1) : (curr_src_x0_w + 16'd1);
-    assign curr_src_y1_w = (curr_src_y0_w >= (IMG_HEIGHT - 1)) ? (IMG_HEIGHT - 1) : (curr_src_y0_w + 16'd1);
-    assign curr_fx_w     = src_x_fp_q[15:8];
-    assign curr_fy_w     = src_y_fp_q[15:8];
+    assign curr_src_x0_w = src_x0_q;
+    assign curr_src_y0_w = src_y0_q;
+    assign curr_src_x1_w = src_x1_q;
+    assign curr_src_y1_w = src_y1_q;
+    assign curr_fx_w     = src_fx_q;
+    assign curr_fy_w     = src_fy_q;
 
     assign pipe_ce   = (~interp_valid_w) | m_ready;
     assign s_ready   = pipe_ce;
@@ -278,6 +286,12 @@ module bilinear_resize_realtime_stream_std #(
             out_y_q <= 16'd0;
             src_x_fp_q <= 32'd0;
             src_y_fp_q <= 32'd0;
+            src_x0_q <= 16'd0;
+            src_x1_q <= 16'd0;
+            src_y0_q <= 16'd0;
+            src_y1_q <= 16'd0;
+            src_fx_q <= 8'd0;
+            src_fy_q <= 8'd0;
             active_out_width_q  <= OUT_WIDTH[15:0];
             active_out_height_q <= OUT_HEIGHT[15:0];
             active_scale_x_fp_q <= DEFAULT_SCALE_X_FP;
@@ -326,6 +340,20 @@ module bilinear_resize_realtime_stream_std #(
                     out_y_q    <= issue_next_out_y_q;
                     src_x_fp_q <= issue_next_src_x_fp_q;
                     src_y_fp_q <= issue_next_src_y_fp_q;
+                    src_x0_q   <= issue_next_src_x_fp_q[31:16];
+                    src_y0_q   <= issue_next_src_y_fp_q[31:16];
+                    src_fx_q   <= issue_next_src_x_fp_q[15:8];
+                    src_fy_q   <= issue_next_src_y_fp_q[15:8];
+                    if (issue_next_src_x_fp_q[31:16] >= (IMG_WIDTH - 1)) begin
+                        src_x1_q <= (IMG_WIDTH - 1);
+                    end else begin
+                        src_x1_q <= issue_next_src_x_fp_q[31:16] + 16'd1;
+                    end
+                    if (issue_next_src_y_fp_q[31:16] >= (IMG_HEIGHT - 1)) begin
+                        src_y1_q <= (IMG_HEIGHT - 1);
+                    end else begin
+                        src_y1_q <= issue_next_src_y_fp_q[31:16] + 16'd1;
+                    end
                 end
 
                 if (emit_valid_w) begin
@@ -334,8 +362,8 @@ module bilinear_resize_realtime_stream_std #(
                     issue_p01_q <= emit_p01_w;
                     issue_p10_q <= emit_p10_w;
                     issue_p11_q <= emit_p11_w;
-                    issue_fx_q <= curr_fx_w;
-                    issue_fy_q <= curr_fy_w;
+                    issue_fx_q <= src_fx_q;
+                    issue_fy_q <= src_fy_q;
                     issue_sof_q <= emit_sof_w;
                     issue_eol_q <= emit_eol_w;
                     issue_eof_q <= emit_eof_w;
@@ -356,6 +384,12 @@ module bilinear_resize_realtime_stream_std #(
                         out_y_q <= 16'd0;
                         src_x_fp_q <= 32'd0;
                         src_y_fp_q <= 32'd0;
+                        src_x0_q <= 16'd0;
+                        src_x1_q <= 16'd0;
+                        src_y0_q <= 16'd0;
+                        src_y1_q <= 16'd0;
+                        src_fx_q <= 8'd0;
+                        src_fy_q <= 8'd0;
                         issue_valid_q <= 1'b0;
 
                         if (pending_cfg_valid_q) begin
@@ -406,6 +440,12 @@ module bilinear_resize_realtime_stream_std #(
                         out_y_q <= 16'd0;
                         src_x_fp_q <= 32'd0;
                         src_y_fp_q <= 32'd0;
+                        src_x0_q <= 16'd0;
+                        src_x1_q <= 16'd0;
+                        src_y0_q <= 16'd0;
+                        src_y1_q <= 16'd0;
+                        src_fx_q <= 8'd0;
+                        src_fy_q <= 8'd0;
                         issue_valid_q <= 1'b0;
                     end
                 end
