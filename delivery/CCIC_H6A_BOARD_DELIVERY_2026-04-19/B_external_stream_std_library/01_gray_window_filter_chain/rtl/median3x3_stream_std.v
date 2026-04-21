@@ -32,6 +32,7 @@ module median3x3_stream_std #(
     wire stg4_ready;
     wire stg3_ready;
     wire stg2_ready;
+    wire stg1a_ready;
     wire stg1_ready;
     wire stg0_ready;
 
@@ -43,7 +44,15 @@ module median3x3_stream_std #(
     reg                             stg0_eol;
     reg                             stg0_eof;
 
-    // Stage 1: sort each row of the 3x3 window.
+    // Stage 1a: first compare-swap for each row sort.
+    reg                             stg1a_valid;
+    reg  [MAX_LANES*DATA_W*9-1:0]   stg1a_rows_step1;
+    reg  [MAX_LANES-1:0]            stg1a_keep;
+    reg                             stg1a_sof;
+    reg                             stg1a_eol;
+    reg                             stg1a_eof;
+
+    // Stage 1: finish row sort for each row of the 3x3 window.
     reg                             stg1_valid;
     reg  [MAX_LANES*DATA_W*9-1:0]   stg1_rowsort;
     reg  [MAX_LANES-1:0]            stg1_keep;
@@ -84,6 +93,7 @@ module median3x3_stream_std #(
     reg                             stg5_eol;
     reg                             stg5_eof;
 
+    reg [MAX_LANES*DATA_W*9-1:0]    stg1a_rows_step1_comb;
     reg [MAX_LANES*DATA_W*9-1:0]    stg1_rowsort_comb;
     reg [MAX_LANES*STG2_PACK_W-1:0] stg2_prep_comb;
     reg [MAX_LANES*DATA_W*3-1:0]    stg3_candidates_comb;
@@ -221,6 +231,59 @@ module median3x3_stream_std #(
         end
     endfunction
 
+    // Complete sort3 after mid3_step1_pack by applying the remaining 2 compare-swaps.
+    function [DATA_W*3-1:0] sort3_finish_pack_from_step1;
+        input [DATA_W*3-1:0] step1_pack;
+        reg [DATA_W-1:0] x;
+        reg [DATA_W-1:0] y;
+        reg [DATA_W-1:0] z;
+        reg [DATA_W-1:0] swap_tmp;
+        begin
+            x = tap3(step1_pack, 0);
+            y = tap3(step1_pack, 1);
+            z = tap3(step1_pack, 2);
+            if (y > z) begin
+                swap_tmp = y;
+                y = z;
+                z = swap_tmp;
+            end
+            if (x > y) begin
+                swap_tmp = x;
+                x = y;
+                y = swap_tmp;
+            end
+            sort3_finish_pack_from_step1 = {x, y, z};
+        end
+    endfunction
+
+    // Stage-1a combinational transform: each row only does first compare-swap.
+    function [DATA_W*9-1:0] sort_window_rows_step1;
+        input [DATA_W*9-1:0] window;
+        reg [DATA_W*3-1:0] row0_step1;
+        reg [DATA_W*3-1:0] row1_step1;
+        reg [DATA_W*3-1:0] row2_step1;
+        begin
+            row0_step1 = mid3_step1_pack(tap9(window, 0), tap9(window, 1), tap9(window, 2));
+            row1_step1 = mid3_step1_pack(tap9(window, 3), tap9(window, 4), tap9(window, 5));
+            row2_step1 = mid3_step1_pack(tap9(window, 6), tap9(window, 7), tap9(window, 8));
+            sort_window_rows_step1 = {row0_step1, row1_step1, row2_step1};
+        end
+    endfunction
+
+    // Stage-1 combinational transform: finish each row sort from step1 packs.
+    function [DATA_W*9-1:0] sort_window_rows_finish;
+        input [DATA_W*9-1:0] rows_step1;
+        reg [DATA_W*3-1:0] row0_sorted;
+        reg [DATA_W*3-1:0] row1_sorted;
+        reg [DATA_W*3-1:0] row2_sorted;
+        begin
+            row0_sorted = sort3_finish_pack_from_step1(rows_step1[DATA_W*9-1 -: DATA_W*3]);
+            row1_sorted = sort3_finish_pack_from_step1(rows_step1[DATA_W*6-1 -: DATA_W*3]);
+            row2_sorted = sort3_finish_pack_from_step1(rows_step1[DATA_W*3-1:0]);
+            sort_window_rows_finish = {row0_sorted, row1_sorted, row2_sorted};
+        end
+    endfunction
+
     // Output format: {max(row_min), mid_step1_pack, min(row_max)}.
     function [STG2_PACK_W-1:0] prep_candidates_step1;
         input [DATA_W*9-1:0] rowsort;
@@ -268,15 +331,26 @@ module median3x3_stream_std #(
     assign stg3_ready = (~stg3_valid) | stg4_ready;
     assign stg2_ready = (~stg2_valid) | stg3_ready;
     assign stg1_ready = (~stg1_valid) | stg2_ready;
-    assign stg0_ready = (~stg0_valid) | stg1_ready;
+    assign stg1a_ready = (~stg1a_valid) | stg1_ready;
+    assign stg0_ready = (~stg0_valid) | stg1a_ready;
     assign s_ready    = stg0_ready;
+
+    always @* begin
+        stg1a_rows_step1_comb = {MAX_LANES*DATA_W*9{1'b0}};
+        for (lane_idx = 0; lane_idx < MAX_LANES; lane_idx = lane_idx + 1) begin
+            if (stg0_keep[lane_idx]) begin
+                stg1a_rows_step1_comb[lane_idx*DATA_W*9 +: DATA_W*9] =
+                    sort_window_rows_step1(stg0_data[lane_idx*DATA_W*9 +: DATA_W*9]);
+            end
+        end
+    end
 
     always @* begin
         stg1_rowsort_comb = {MAX_LANES*DATA_W*9{1'b0}};
         for (lane_idx = 0; lane_idx < MAX_LANES; lane_idx = lane_idx + 1) begin
-            if (stg0_keep[lane_idx]) begin
+            if (stg1a_keep[lane_idx]) begin
                 stg1_rowsort_comb[lane_idx*DATA_W*9 +: DATA_W*9] =
-                    sort_window_rows(stg0_data[lane_idx*DATA_W*9 +: DATA_W*9]);
+                    sort_window_rows_finish(stg1a_rows_step1[lane_idx*DATA_W*9 +: DATA_W*9]);
             end
         end
     end
@@ -353,6 +427,32 @@ module median3x3_stream_std #(
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
+            stg1a_valid      <= 1'b0;
+            stg1a_rows_step1 <= {MAX_LANES*DATA_W*9{1'b0}};
+            stg1a_keep       <= {MAX_LANES{1'b0}};
+            stg1a_sof        <= 1'b0;
+            stg1a_eol        <= 1'b0;
+            stg1a_eof        <= 1'b0;
+        end else if (stg1a_ready) begin
+            stg1a_valid <= stg0_valid;
+            if (stg0_valid) begin
+                stg1a_rows_step1 <= stg1a_rows_step1_comb;
+                stg1a_keep       <= stg0_keep;
+                stg1a_sof        <= stg0_sof;
+                stg1a_eol        <= stg0_eol;
+                stg1a_eof        <= stg0_eof;
+            end else begin
+                stg1a_rows_step1 <= {MAX_LANES*DATA_W*9{1'b0}};
+                stg1a_keep       <= {MAX_LANES{1'b0}};
+                stg1a_sof        <= 1'b0;
+                stg1a_eol        <= 1'b0;
+                stg1a_eof        <= 1'b0;
+            end
+        end
+    end
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
             stg1_valid   <= 1'b0;
             stg1_rowsort <= {MAX_LANES*DATA_W*9{1'b0}};
             stg1_keep    <= {MAX_LANES{1'b0}};
@@ -360,13 +460,13 @@ module median3x3_stream_std #(
             stg1_eol     <= 1'b0;
             stg1_eof     <= 1'b0;
         end else if (stg1_ready) begin
-            stg1_valid <= stg0_valid;
-            if (stg0_valid) begin
+            stg1_valid <= stg1a_valid;
+            if (stg1a_valid) begin
                 stg1_rowsort <= stg1_rowsort_comb;
-                stg1_keep    <= stg0_keep;
-                stg1_sof     <= stg0_sof;
-                stg1_eol     <= stg0_eol;
-                stg1_eof     <= stg0_eof;
+                stg1_keep    <= stg1a_keep;
+                stg1_sof     <= stg1a_sof;
+                stg1_eol     <= stg1a_eol;
+                stg1_eof     <= stg1a_eof;
             end else begin
                 stg1_rowsort <= {MAX_LANES*DATA_W*9{1'b0}};
                 stg1_keep    <= {MAX_LANES{1'b0}};
