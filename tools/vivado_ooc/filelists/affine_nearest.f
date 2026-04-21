@@ -1,0 +1,4 @@
+# 07_affine_wrapper
+delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/A_staging_validated_board_ready/07_affine_wrapper/rtl/affine_nearest_stream_std.v
+delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/A_staging_validated_board_ready/07_affine_wrapper/rtl/affine_nearest_addr_pipe.v
+delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/C_shared_dependencies/rtl/frame_latched_affine6_s16.v

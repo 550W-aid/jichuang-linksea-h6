@@ -1,0 +1,6 @@
+# gray -> threshold -> window3x3 -> erode
+delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/B_external_stream_std_library/02_binary_morphology_chain/rtl/gray_threshold_erode_chain_top.v
+delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/C_shared_dependencies/rtl/grayscale_stream_std.v
+delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/C_shared_dependencies/rtl/window3x3_stream_std.v
+delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/B_external_stream_std_library/02_binary_morphology_chain/rtl/binary_threshold_stream_std.v
+delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/B_external_stream_std_library/02_binary_morphology_chain/rtl/erode3x3_binary_stream_std.v

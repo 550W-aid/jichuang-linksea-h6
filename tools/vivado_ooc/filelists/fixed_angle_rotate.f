@@ -1,0 +1,4 @@
+# 03_fixed_angle_rotate
+delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/A_staging_validated_board_ready/03_fixed_angle_rotate/rtl/fixed_angle_rotate_stream_std.v
+delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/A_staging_validated_board_ready/03_fixed_angle_rotate/rtl/fixed_angle_rotate_addr_pipe.v
+delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/C_shared_dependencies/rtl/frame_latched_u2.v

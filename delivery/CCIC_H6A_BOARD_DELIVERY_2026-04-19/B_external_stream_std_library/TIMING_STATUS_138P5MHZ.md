@@ -1,11 +1,24 @@
 # Timing Status: B_external_stream_std_library
 
 Status:
-- `NOT SIGNED OFF AS STANDALONE BOARD-READY TOPS`
+- `MIXED`
+- This folder is not signed off as a standalone board-ready top by itself
+- Fresh local evidence now exists for promoted consuming tops under this folder
 
-Meaning:
-- These folders are reusable stream chains and reference integration bundles.
-- They are not yet individually signed off as `138.5MHz clean` handoff tops in this delivery package.
+Target:
+- Device: `xc7z020clg400-1`
+- Clock: `138.5MHz`
+- Constraint: `create_clock -name clk -period 7.220 [get_ports clk]`
+- Tool used for this fresh local evidence: `Vivado 2018.3 OOC synth/place/route`
+
+Summary by promoted chain:
+
+| Subdirectory | PASS/FAIL | Boundary | Main note |
+| --- | --- | --- | --- |
+| `01_gray_window_filter_chain` | `FAIL` | `MAX_LANES=1`, `640x480` | `window3x3_stream_std` memory seam still too slow |
+| `02_binary_morphology_chain` | `PASS` | `MAX_LANES=1`, `640x480` | clean only for this tested single-lane consuming-top boundary |
 
 Rule for collaborators:
-- If a chain from this library is promoted into a board-facing top, that promoted top must get its own timing signoff record.
+1. Do not describe the whole library as `138.5MHz signed off`.
+2. Only the specific promoted consuming tops with fresh reports can carry a pass/fail label.
+3. Multi-lane or different-image-size claims require a fresh rerun.
