@@ -83,12 +83,12 @@ module bilinear_resize_realtime_stream_std #(
     reg [31:0]    src_y_fp_q;
     // Registered source-coordinate decode stage.
     // This breaks the direct timing arc from src_* accumulators into emit/issue payload selection.
-    reg [15:0]    src_x0_q;
-    reg [15:0]    src_x1_q;
-    reg [15:0]    src_y0_q;
-    reg [15:0]    src_y1_q;
-    reg [7:0]     src_fx_q;
-    reg [7:0]     src_fy_q;
+    (* DONT_TOUCH = "TRUE" *) reg [15:0]    src_x0_q;
+    (* DONT_TOUCH = "TRUE" *) reg [15:0]    src_x1_q;
+    (* DONT_TOUCH = "TRUE" *) reg [15:0]    src_y0_q;
+    (* DONT_TOUCH = "TRUE" *) reg [15:0]    src_y1_q;
+    (* DONT_TOUCH = "TRUE" *) reg [7:0]     src_fx_q;
+    (* DONT_TOUCH = "TRUE" *) reg [7:0]     src_fy_q;
 
     // Runtime configuration is frame-latched at SOF.
     reg [15:0]    active_out_width_q;
