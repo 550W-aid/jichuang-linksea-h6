@@ -8,7 +8,10 @@ What this module does:
 
 - Accepts real-time RGB888 video stream (`s_valid/s_ready/s_sof/s_eol/s_eof`)
 - Samples a fixed ROI (`ROI_X/Y/W/H`) on a coarse grid (`SAMPLE_STRIDE`)
-- Converts sampled pixels to foreground/background by grayscale threshold
+- Reuses shared preprocess modules for grayscale + threshold:
+  - `C_shared_dependencies/rtl/grayscale_stream_std.v`
+  - `B_external_stream_std_library/02_binary_morphology_chain/rtl/binary_threshold_stream_std.v`
+- Converts sampled pixels to foreground/background by binary threshold result
 - Compares one frame against built-in templates for digits `0~9`
 - Outputs one frame-level classification result:
   - `o_digit_valid` (pulse)

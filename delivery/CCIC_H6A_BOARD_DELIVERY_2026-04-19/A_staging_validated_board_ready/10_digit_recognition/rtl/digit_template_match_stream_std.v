@@ -68,15 +68,23 @@ module digit_template_match_stream_std #(
     reg signed [10:0] best_metric_reg; // Running best metric during class scan.
 
     wire accept = s_valid && s_ready && s_keep;
-    wire [11:0] pix_x = s_sof ? 12'd0 : x_cnt;
-    wire [11:0] pix_y = s_sof ? 12'd0 : y_cnt;
+    wire gray_valid;
+    wire [7:0] gray_data;
+    wire gray_keep;
+    wire gray_sof;
+    wire gray_eol;
+    wire gray_eof;
+    wire bin_valid;
+    wire [7:0] bin_data;
+    wire bin_keep;
+    wire bin_sof;
+    wire bin_eol;
+    wire bin_eof;
 
-    wire [7:0] pix_r = s_data[23:16];
-    wire [7:0] pix_g = s_data[15:8];
-    wire [7:0] pix_b = s_data[7:0];
-    wire [15:0] gray_mul = (pix_r * 8'd77) + (pix_g * 8'd150) + (pix_b * 8'd29);
-    wire [7:0] gray_u8 = gray_mul[15:8];
-    wire pix_fg = (gray_u8 < THRESHOLD);
+    wire feat_accept = bin_valid && bin_keep;
+    wire [11:0] pix_x = bin_sof ? 12'd0 : x_cnt;
+    wire [11:0] pix_y = bin_sof ? 12'd0 : y_cnt;
+    wire pix_fg = ~bin_data[0];
 
     wire roi_x_hit = (pix_x >= ROI_X) && (pix_x < ROI_X + ROI_W);
     wire roi_y_hit = (pix_y >= ROI_Y) && (pix_y < ROI_Y + ROI_H);
@@ -105,6 +113,52 @@ module digit_template_match_stream_std #(
     assign m_sof   = s_sof;
     assign m_eol   = s_eol;
     assign m_eof   = s_eof;
+
+    grayscale_stream_std #(
+        .MAX_LANES(1),
+        .PIX_W_IN(24),
+        .PIX_W_OUT(8)
+    ) u_grayscale_stream_std (
+        .clk    (clk),
+        .rst_n  (rst_n),
+        .s_valid(accept),
+        .s_ready(),
+        .s_data (s_data),
+        .s_keep (s_keep),
+        .s_sof  (s_sof),
+        .s_eol  (s_eol),
+        .s_eof  (s_eof),
+        .m_valid(gray_valid),
+        .m_ready(1'b1),
+        .m_data (gray_data),
+        .m_keep (gray_keep),
+        .m_sof  (gray_sof),
+        .m_eol  (gray_eol),
+        .m_eof  (gray_eof)
+    );
+
+    binary_threshold_stream_std #(
+        .MAX_LANES(1),
+        .DATA_W(8),
+        .THRESHOLD(THRESHOLD)
+    ) u_binary_threshold_stream_std (
+        .clk    (clk),
+        .rst_n  (rst_n),
+        .s_valid(gray_valid),
+        .s_ready(),
+        .s_data (gray_data),
+        .s_keep (gray_keep),
+        .s_sof  (gray_sof),
+        .s_eol  (gray_eol),
+        .s_eof  (gray_eof),
+        .m_valid(bin_valid),
+        .m_ready(1'b1),
+        .m_data (bin_data),
+        .m_keep (bin_keep),
+        .m_sof  (bin_sof),
+        .m_eol  (bin_eol),
+        .m_eof  (bin_eof)
+    );
 
     function template_bit;
         input [3:0] digit;
@@ -234,7 +288,7 @@ module digit_template_match_stream_std #(
                 end
             end
 
-            if (accept && s_sof) begin
+            if (feat_accept && bin_sof) begin
                 sample_count <= 9'd0;
                 match_cnt_0 <= 9'd0;
                 match_cnt_1 <= 9'd0;
@@ -248,7 +302,7 @@ module digit_template_match_stream_std #(
                 match_cnt_9 <= 9'd0;
             end
 
-            if (accept && sample_hit) begin
+            if (feat_accept && sample_hit) begin
                 sample_count <= sample_count + 1'b1;
                 if (pix_fg && template_bit(4'd0, sample_idx)) match_cnt_0 <= match_cnt_0 + 1'b1;
                 if (pix_fg && template_bit(4'd1, sample_idx)) match_cnt_1 <= match_cnt_1 + 1'b1;
@@ -262,15 +316,15 @@ module digit_template_match_stream_std #(
                 if (pix_fg && template_bit(4'd9, sample_idx)) match_cnt_9 <= match_cnt_9 + 1'b1;
             end
 
-            if (accept && s_eof) begin
+            if (feat_accept && bin_eof) begin
                 frame_done_pending <= 1'b1;
             end
 
-            if (accept) begin
-                if (s_eof) begin
+            if (feat_accept) begin
+                if (bin_eof) begin
                     x_cnt <= 12'd0;
                     y_cnt <= 12'd0;
-                end else if (s_eol) begin
+                end else if (bin_eol) begin
                     x_cnt <= 12'd0;
                     if (y_cnt < FRAME_HEIGHT - 1) begin
                         y_cnt <= y_cnt + 1'b1;
