@@ -3,77 +3,52 @@
 module digit_template_match_stream_std #(
     parameter integer FRAME_WIDTH   = 640,
     parameter integer FRAME_HEIGHT  = 480,
-    parameter integer ROI_X         = 288,
+    parameter integer ROI_X         = 64,
     parameter integer ROI_Y         = 208,
-    parameter integer ROI_W         = 64,
-    parameter integer ROI_H         = 64,
+    parameter integer DIGIT_W       = 64,
+    parameter integer DIGIT_H       = 64,
+    parameter integer NUM_DIGITS    = 4,
+    parameter integer DIGIT_GAP     = 16,
     parameter integer SAMPLE_STRIDE = 4,
-    parameter [7:0]   THRESHOLD     = 8'd96
+    parameter [7:0]   THRESHOLD     = 8'd96,
+    parameter [8:0]   MIN_FG_PIX    = 9'd8
 ) (
-    input  wire        clk,            // Processing clock.
-    input  wire        rst_n,          // Active-low reset.
-    input  wire        s_valid,        // Input beat valid.
-    output wire        s_ready,        // Input beat ready.
-    input  wire [23:0] s_data,         // Input RGB888 pixel.
-    input  wire        s_keep,         // Input lane keep.
-    input  wire        s_sof,          // Input start-of-frame.
-    input  wire        s_eol,          // Input end-of-line.
-    input  wire        s_eof,          // Input end-of-frame.
-    output wire        m_valid,        // Output beat valid (passthrough).
-    input  wire        m_ready,        // Output beat ready (passthrough).
-    output wire [23:0] m_data,         // Output RGB888 pixel (passthrough).
-    output wire        m_keep,         // Output keep (passthrough).
-    output wire        m_sof,          // Output SOF (passthrough).
-    output wire        m_eol,          // Output EOL (passthrough).
-    output wire        m_eof,          // Output EOF (passthrough).
-    output reg         o_digit_valid,  // One-cycle pulse when frame digit is ready.
-    output reg  [3:0]  o_digit_id,     // Recognized digit ID (0~9).
-    output reg  [7:0]  o_digit_score   // Matching score (0~255).
+    input  wire                          clk,              // Processing clock.
+    input  wire                          rst_n,            // Active-low reset.
+    input  wire                          s_valid,          // Input beat valid.
+    output wire                          s_ready,          // Input beat ready.
+    input  wire [23:0]                   s_data,           // Input RGB888 pixel.
+    input  wire                          s_keep,           // Input lane keep.
+    input  wire                          s_sof,            // Input start-of-frame.
+    input  wire                          s_eol,            // Input end-of-line.
+    input  wire                          s_eof,            // Input end-of-frame.
+    output wire                          m_valid,          // Output beat valid (passthrough).
+    input  wire                          m_ready,          // Output beat ready (passthrough).
+    output wire [23:0]                   m_data,           // Output RGB888 pixel (passthrough).
+    output wire                          m_keep,           // Output keep (passthrough).
+    output wire                          m_sof,            // Output SOF (passthrough).
+    output wire                          m_eol,            // Output EOL (passthrough).
+    output wire                          m_eof,            // Output EOF (passthrough).
+    output reg                           o_digit_valid,    // Backward-compatible: slot0 digit valid pulse.
+    output reg  [3:0]                    o_digit_id,       // Backward-compatible: slot0 digit id.
+    output reg  [7:0]                    o_digit_score,    // Backward-compatible: slot0 match score.
+    output reg                           o_digits_valid,   // One-cycle pulse when all slots are updated.
+    output reg  [NUM_DIGITS*4-1:0]       o_digit_ids,      // Packed ids: slot i at [i*4 +: 4].
+    output reg  [NUM_DIGITS*8-1:0]       o_digit_scores,   // Packed scores: slot i at [i*8 +: 8].
+    output reg  [NUM_DIGITS-1:0]         o_digit_present   // Slot has enough foreground samples.
 );
 
-    localparam integer GRID_W = ROI_W / SAMPLE_STRIDE;
-    localparam integer GRID_H = ROI_H / SAMPLE_STRIDE;
-    localparam integer GRID_N = GRID_W * GRID_H;
-
-    // 16x16 seven-segment-like templates, row-major, bit=1 means foreground (dark digit).
-    localparam [255:0] TEMPLATE_0 = 256'h00001ff81ff860066006600660060000000060066006600660061ff81ff80000;
-    localparam [255:0] TEMPLATE_1 = 256'h0000000000000006000600060006000000000006000600060006000000000000;
-    localparam [255:0] TEMPLATE_2 = 256'h00001ff81ff800060006000600061ff81ff860006000600060001ff81ff80000;
-    localparam [255:0] TEMPLATE_3 = 256'h00001ff81ff800060006000600061ff81ff800060006000600061ff81ff80000;
-    localparam [255:0] TEMPLATE_4 = 256'h00000000000060066006600660061ff81ff80006000600060006000000000000;
-    localparam [255:0] TEMPLATE_5 = 256'h00001ff81ff860006000600060001ff81ff800060006000600061ff81ff80000;
-    localparam [255:0] TEMPLATE_6 = 256'h00001ff81ff860006000600060001ff81ff860066006600660061ff81ff80000;
-    localparam [255:0] TEMPLATE_7 = 256'h00001ff81ff80006000600060006000000000006000600060006000000000000;
-    localparam [255:0] TEMPLATE_8 = 256'h00001ff81ff860066006600660061ff81ff860066006600660061ff81ff80000;
-    localparam [255:0] TEMPLATE_9 = 256'h00001ff81ff860066006600660061ff81ff800060006000600061ff81ff80000;
-
-    reg  [11:0] x_cnt;                 // Internal stream x counter.
-    reg  [11:0] y_cnt;                 // Internal stream y counter.
-    reg  [8:0]  sample_count;          // Number of sampled points in current frame.
-    reg  [8:0]  match_cnt_0;           // Current-frame foreground intersection count for digit 0.
-    reg  [8:0]  match_cnt_1;           // Current-frame foreground intersection count for digit 1.
-    reg  [8:0]  match_cnt_2;           // Current-frame foreground intersection count for digit 2.
-    reg  [8:0]  match_cnt_3;           // Current-frame foreground intersection count for digit 3.
-    reg  [8:0]  match_cnt_4;           // Current-frame foreground intersection count for digit 4.
-    reg  [8:0]  match_cnt_5;           // Current-frame foreground intersection count for digit 5.
-    reg  [8:0]  match_cnt_6;           // Current-frame foreground intersection count for digit 6.
-    reg  [8:0]  match_cnt_7;           // Current-frame foreground intersection count for digit 7.
-    reg  [8:0]  match_cnt_8;           // Current-frame foreground intersection count for digit 8.
-    reg  [8:0]  match_cnt_9;           // Current-frame foreground intersection count for digit 9.
-    reg         frame_done_pending;    // Latch frame-end event and start sequential class scan.
-    reg         eval_active;           // Class scan active flag.
-    reg  [3:0]  eval_idx;              // Class scan index (0..8 => compare digit 1..9).
-    reg  [3:0]  best_digit_reg;        // Running best digit during class scan.
-    reg  [8:0]  best_match_reg;        // Running best match count during class scan.
-    reg signed [10:0] best_metric_reg; // Running best metric during class scan.
+    localparam integer SLOT_PITCH = DIGIT_W + DIGIT_GAP;
 
     wire accept = s_valid && s_ready && s_keep;
+
     wire gray_valid;
     wire [7:0] gray_data;
     wire gray_keep;
     wire gray_sof;
     wire gray_eol;
     wire gray_eof;
+
     wire bin_valid;
     wire [7:0] bin_data;
     wire bin_keep;
@@ -82,29 +57,44 @@ module digit_template_match_stream_std #(
     wire bin_eof;
 
     wire feat_accept = bin_valid && bin_keep;
-    wire [11:0] pix_x = bin_sof ? 12'd0 : x_cnt;
-    wire [11:0] pix_y = bin_sof ? 12'd0 : y_cnt;
     wire pix_fg = ~bin_data[0];
 
-    wire roi_x_hit = (pix_x >= ROI_X) && (pix_x < ROI_X + ROI_W);
-    wire roi_y_hit = (pix_y >= ROI_Y) && (pix_y < ROI_Y + ROI_H);
-    wire roi_hit = roi_x_hit && roi_y_hit;
+    reg [11:0] x_cnt; // Pixel x counter aligned to binary feature stream.
+    reg [11:0] y_cnt; // Pixel y counter aligned to binary feature stream.
+    wire [11:0] pix_x = bin_sof ? 12'd0 : x_cnt;
+    wire [11:0] pix_y = bin_sof ? 12'd0 : y_cnt;
 
-    wire [11:0] roi_x_rel = pix_x - ROI_X;
-    wire [11:0] roi_y_rel = pix_y - ROI_Y;
-    wire stride_x_hit = (roi_x_rel % SAMPLE_STRIDE) == (SAMPLE_STRIDE / 2);
-    wire stride_y_hit = (roi_y_rel % SAMPLE_STRIDE) == (SAMPLE_STRIDE / 2);
-    wire sample_hit = roi_hit && stride_x_hit && stride_y_hit;
-    wire [7:0] sample_gx = roi_x_rel / SAMPLE_STRIDE;
-    wire [7:0] sample_gy = roi_y_rel / SAMPLE_STRIDE;
-    wire [7:0] sample_idx = (sample_gy * GRID_W[7:0]) + sample_gx;
+    wire [NUM_DIGITS-1:0]   slot_valid_w;
+    wire [NUM_DIGITS-1:0]   slot_present_w;
+    wire [NUM_DIGITS*4-1:0] slot_id_w;
+    wire [NUM_DIGITS*8-1:0] slot_score_w;
 
-    reg [3:0]         cand_digit;
-    reg [8:0]         cand_match;
-    reg signed [10:0] cand_metric;
-    reg [3:0]         best_digit_next;
-    reg [8:0]         best_match_next;
-    reg signed [10:0] best_metric_next;
+    genvar gi;
+    generate
+        for (gi = 0; gi < NUM_DIGITS; gi = gi + 1) begin : g_slot_core
+            digit_template_match_slot_core #(
+                .ROI_X(ROI_X + gi * SLOT_PITCH),
+                .ROI_Y(ROI_Y),
+                .ROI_W(DIGIT_W),
+                .ROI_H(DIGIT_H),
+                .SAMPLE_STRIDE(SAMPLE_STRIDE),
+                .MIN_FG_PIX(MIN_FG_PIX)
+            ) u_slot_core (
+                .clk(clk),
+                .rst_n(rst_n),
+                .i_feat_accept(feat_accept),
+                .i_pix_x(pix_x),
+                .i_pix_y(pix_y),
+                .i_sof(bin_sof),
+                .i_eof(bin_eof),
+                .i_pix_fg(pix_fg),
+                .o_digit_valid(slot_valid_w[gi]),
+                .o_digit_present(slot_present_w[gi]),
+                .o_digit_id(slot_id_w[gi*4 +: 4]),
+                .o_digit_score(slot_score_w[gi*8 +: 8])
+            );
+        end
+    endgenerate
 
     assign s_ready = m_ready;
     assign m_valid = s_valid;
@@ -160,165 +150,20 @@ module digit_template_match_stream_std #(
         .m_eof  (bin_eof)
     );
 
-    function template_bit;
-        input [3:0] digit;
-        input [7:0] idx;
-        begin
-            case (digit)
-                4'd0: template_bit = TEMPLATE_0[8'd255 - idx];
-                4'd1: template_bit = TEMPLATE_1[8'd255 - idx];
-                4'd2: template_bit = TEMPLATE_2[8'd255 - idx];
-                4'd3: template_bit = TEMPLATE_3[8'd255 - idx];
-                4'd4: template_bit = TEMPLATE_4[8'd255 - idx];
-                4'd5: template_bit = TEMPLATE_5[8'd255 - idx];
-                4'd6: template_bit = TEMPLATE_6[8'd255 - idx];
-                4'd7: template_bit = TEMPLATE_7[8'd255 - idx];
-                4'd8: template_bit = TEMPLATE_8[8'd255 - idx];
-                default: template_bit = TEMPLATE_9[8'd255 - idx];
-            endcase
-        end
-    endfunction
-
-    function [8:0] match_for_digit;
-        input [3:0] digit;
-        begin
-            case (digit)
-                4'd0: match_for_digit = match_cnt_0;
-                4'd1: match_for_digit = match_cnt_1;
-                4'd2: match_for_digit = match_cnt_2;
-                4'd3: match_for_digit = match_cnt_3;
-                4'd4: match_for_digit = match_cnt_4;
-                4'd5: match_for_digit = match_cnt_5;
-                4'd6: match_for_digit = match_cnt_6;
-                4'd7: match_for_digit = match_cnt_7;
-                4'd8: match_for_digit = match_cnt_8;
-                default: match_for_digit = match_cnt_9;
-            endcase
-        end
-    endfunction
-
-    function [7:0] ones_for_digit;
-        input [3:0] digit;
-        begin
-            case (digit)
-                4'd0: ones_for_digit = 8'd72;
-                4'd1: ones_for_digit = 8'd16;
-                4'd2: ones_for_digit = 8'd76;
-                4'd3: ones_for_digit = 8'd76;
-                4'd4: ones_for_digit = 8'd44;
-                4'd5: ones_for_digit = 8'd76;
-                4'd6: ones_for_digit = 8'd84;
-                4'd7: ones_for_digit = 8'd36;
-                4'd8: ones_for_digit = 8'd92;
-                default: ones_for_digit = 8'd84;
-            endcase
-        end
-    endfunction
-
-    function signed [10:0] metric_from;
-        input [8:0] match_cnt;
-        input [7:0] ones_cnt;
-        begin
-            metric_from = $signed({1'b0, match_cnt, 1'b0}) - $signed({3'd0, ones_cnt});
-        end
-    endfunction
-
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             x_cnt <= 12'd0;
             y_cnt <= 12'd0;
-            sample_count <= 9'd0;
-            match_cnt_0 <= 9'd0;
-            match_cnt_1 <= 9'd0;
-            match_cnt_2 <= 9'd0;
-            match_cnt_3 <= 9'd0;
-            match_cnt_4 <= 9'd0;
-            match_cnt_5 <= 9'd0;
-            match_cnt_6 <= 9'd0;
-            match_cnt_7 <= 9'd0;
-            match_cnt_8 <= 9'd0;
-            match_cnt_9 <= 9'd0;
-            frame_done_pending <= 1'b0;
-            eval_active <= 1'b0;
-            eval_idx <= 4'd0;
-            best_digit_reg <= 4'd0;
-            best_match_reg <= 9'd0;
-            best_metric_reg <= 11'sd0;
             o_digit_valid <= 1'b0;
             o_digit_id <= 4'd0;
             o_digit_score <= 8'd0;
+            o_digits_valid <= 1'b0;
+            o_digit_ids <= {NUM_DIGITS*4{1'b0}};
+            o_digit_scores <= {NUM_DIGITS*8{1'b0}};
+            o_digit_present <= {NUM_DIGITS{1'b0}};
         end else begin
             o_digit_valid <= 1'b0;
-
-            if (frame_done_pending) begin
-                frame_done_pending <= 1'b0;
-                eval_active <= 1'b1;
-                eval_idx <= 4'd0;
-                best_digit_reg <= 4'd0;
-                best_match_reg <= match_cnt_0;
-                best_metric_reg <= metric_from(match_cnt_0, 8'd72);
-            end
-
-            if (eval_active) begin
-                cand_digit = eval_idx + 4'd1;
-                cand_match = match_for_digit(cand_digit);
-                cand_metric = metric_from(cand_match, ones_for_digit(cand_digit));
-
-                best_digit_next = best_digit_reg;
-                best_match_next = best_match_reg;
-                best_metric_next = best_metric_reg;
-
-                if (cand_metric >= best_metric_reg) begin
-                    best_digit_next = cand_digit;
-                    best_match_next = cand_match;
-                    best_metric_next = cand_metric;
-                end
-
-                best_digit_reg <= best_digit_next;
-                best_match_reg <= best_match_next;
-                best_metric_reg <= best_metric_next;
-
-                if (eval_idx == 4'd8) begin
-                    eval_active <= 1'b0;
-                    o_digit_valid <= 1'b1;
-                    o_digit_id <= best_digit_next;
-                    o_digit_score <= best_match_next[8] ? 8'hFF : best_match_next[7:0];
-                end else begin
-                    eval_idx <= eval_idx + 4'd1;
-                end
-            end
-
-            if (feat_accept && bin_sof) begin
-                sample_count <= 9'd0;
-                match_cnt_0 <= 9'd0;
-                match_cnt_1 <= 9'd0;
-                match_cnt_2 <= 9'd0;
-                match_cnt_3 <= 9'd0;
-                match_cnt_4 <= 9'd0;
-                match_cnt_5 <= 9'd0;
-                match_cnt_6 <= 9'd0;
-                match_cnt_7 <= 9'd0;
-                match_cnt_8 <= 9'd0;
-                match_cnt_9 <= 9'd0;
-            end
-
-            if (feat_accept && sample_hit) begin
-                sample_count <= sample_count + 1'b1;
-                if (pix_fg && template_bit(4'd0, sample_idx)) match_cnt_0 <= match_cnt_0 + 1'b1;
-                if (pix_fg && template_bit(4'd1, sample_idx)) match_cnt_1 <= match_cnt_1 + 1'b1;
-                if (pix_fg && template_bit(4'd2, sample_idx)) match_cnt_2 <= match_cnt_2 + 1'b1;
-                if (pix_fg && template_bit(4'd3, sample_idx)) match_cnt_3 <= match_cnt_3 + 1'b1;
-                if (pix_fg && template_bit(4'd4, sample_idx)) match_cnt_4 <= match_cnt_4 + 1'b1;
-                if (pix_fg && template_bit(4'd5, sample_idx)) match_cnt_5 <= match_cnt_5 + 1'b1;
-                if (pix_fg && template_bit(4'd6, sample_idx)) match_cnt_6 <= match_cnt_6 + 1'b1;
-                if (pix_fg && template_bit(4'd7, sample_idx)) match_cnt_7 <= match_cnt_7 + 1'b1;
-                if (pix_fg && template_bit(4'd8, sample_idx)) match_cnt_8 <= match_cnt_8 + 1'b1;
-                if (pix_fg && template_bit(4'd9, sample_idx)) match_cnt_9 <= match_cnt_9 + 1'b1;
-            end
-
-            if (feat_accept && bin_eof) begin
-                frame_done_pending <= 1'b1;
-            end
+            o_digits_valid <= 1'b0;
 
             if (feat_accept) begin
                 if (bin_eof) begin
@@ -335,7 +180,19 @@ module digit_template_match_stream_std #(
                     end
                 end
             end
+
+            // All slot cores are aligned to the same frame event; use slot0 valid as commit pulse.
+            if (slot_valid_w[0]) begin
+                o_digits_valid <= 1'b1;
+                o_digit_valid <= 1'b1;
+                o_digit_ids <= slot_id_w;
+                o_digit_scores <= slot_score_w;
+                o_digit_present <= slot_present_w;
+                o_digit_id <= slot_id_w[3:0];
+                o_digit_score <= slot_score_w[7:0];
+            end
         end
     end
 
 endmodule
+
