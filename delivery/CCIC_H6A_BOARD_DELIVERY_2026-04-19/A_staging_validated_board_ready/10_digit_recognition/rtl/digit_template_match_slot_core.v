@@ -1,25 +1,26 @@
 `timescale 1ns / 1ps
 
 module digit_template_match_slot_core #(
-    parameter integer ROI_X         = 64,
-    parameter integer ROI_Y         = 208,
     parameter integer ROI_W         = 64,
     parameter integer ROI_H         = 64,
     parameter integer SAMPLE_STRIDE = 4,
     parameter [8:0]   MIN_FG_PIX    = 9'd8
 ) (
-    input  wire        clk,            // Processing clock.
-    input  wire        rst_n,          // Active-low reset.
-    input  wire        i_feat_accept,  // Feature beat valid.
-    input  wire [11:0] i_pix_x,        // Feature-aligned pixel x coordinate.
-    input  wire [11:0] i_pix_y,        // Feature-aligned pixel y coordinate.
-    input  wire        i_sof,          // Feature start-of-frame.
-    input  wire        i_eof,          // Feature end-of-frame.
-    input  wire        i_pix_fg,       // Foreground flag after threshold.
-    output reg         o_digit_valid,  // One-cycle pulse when slot digit is ready.
-    output reg         o_digit_present,// Slot has enough foreground samples.
-    output reg  [3:0]  o_digit_id,     // Slot recognized digit id.
-    output reg  [7:0]  o_digit_score   // Slot matching score.
+    input  wire        clk,             // Processing clock.
+    input  wire        rst_n,           // Active-low reset.
+    input  wire        i_feat_accept,   // Feature beat valid.
+    input  wire [11:0] i_pix_x,         // Feature-aligned pixel x coordinate.
+    input  wire [11:0] i_pix_y,         // Feature-aligned pixel y coordinate.
+    input  wire        i_sof,           // Feature start-of-frame.
+    input  wire        i_eof,           // Feature end-of-frame.
+    input  wire        i_pix_fg,        // Foreground flag after threshold.
+    input  wire        i_roi_enable,    // Current slot ROI enabled for matching.
+    input  wire [11:0] i_roi_x,         // Current slot ROI left x.
+    input  wire [11:0] i_roi_y,         // Current slot ROI top y.
+    output reg         o_digit_valid,   // One-cycle pulse when slot digit is ready.
+    output reg         o_digit_present, // Slot has enough foreground samples.
+    output reg  [3:0]  o_digit_id,      // Slot recognized digit id.
+    output reg  [7:0]  o_digit_score    // Slot matching score.
 );
 
     localparam integer GRID_W = ROI_W / SAMPLE_STRIDE;
@@ -36,30 +37,34 @@ module digit_template_match_slot_core #(
     localparam [255:0] TEMPLATE_8 = 256'h00001ff81ff860066006600660061ff81ff860066006600660061ff81ff80000;
     localparam [255:0] TEMPLATE_9 = 256'h00001ff81ff860066006600660061ff81ff800060006000600061ff81ff80000;
 
-    reg [8:0] sample_fg_cnt;          // Foreground sampled points count in current frame.
-    reg [8:0] match_cnt_0;            // Current-frame overlap count for digit 0.
-    reg [8:0] match_cnt_1;            // Current-frame overlap count for digit 1.
-    reg [8:0] match_cnt_2;            // Current-frame overlap count for digit 2.
-    reg [8:0] match_cnt_3;            // Current-frame overlap count for digit 3.
-    reg [8:0] match_cnt_4;            // Current-frame overlap count for digit 4.
-    reg [8:0] match_cnt_5;            // Current-frame overlap count for digit 5.
-    reg [8:0] match_cnt_6;            // Current-frame overlap count for digit 6.
-    reg [8:0] match_cnt_7;            // Current-frame overlap count for digit 7.
-    reg [8:0] match_cnt_8;            // Current-frame overlap count for digit 8.
-    reg [8:0] match_cnt_9;            // Current-frame overlap count for digit 9.
-    reg       frame_done_pending;     // Frame-end event latch.
-    reg       eval_active;            // Evaluator active flag.
-    reg [3:0] eval_idx;               // Compare index (0..8 => compare 1..9).
-    reg [3:0] best_digit_reg;         // Running best digit.
-    reg [8:0] best_match_reg;         // Running best match count.
-    reg signed [10:0] best_metric_reg;// Running best metric.
+    reg [8:0] sample_fg_cnt;           // Foreground sampled points count in current frame.
+    reg [8:0] match_cnt_0;             // Current-frame overlap count for digit 0.
+    reg [8:0] match_cnt_1;             // Current-frame overlap count for digit 1.
+    reg [8:0] match_cnt_2;             // Current-frame overlap count for digit 2.
+    reg [8:0] match_cnt_3;             // Current-frame overlap count for digit 3.
+    reg [8:0] match_cnt_4;             // Current-frame overlap count for digit 4.
+    reg [8:0] match_cnt_5;             // Current-frame overlap count for digit 5.
+    reg [8:0] match_cnt_6;             // Current-frame overlap count for digit 6.
+    reg [8:0] match_cnt_7;             // Current-frame overlap count for digit 7.
+    reg [8:0] match_cnt_8;             // Current-frame overlap count for digit 8.
+    reg [8:0] match_cnt_9;             // Current-frame overlap count for digit 9.
+    reg       frame_done_pending;      // Frame-end event latch.
+    reg       eval_active;             // Evaluator active flag.
+    reg       eval_phase;              // Evaluator phase: 0=prepare candidate, 1=compare/update.
+    reg [3:0] eval_idx;                // Compare index (0..8 => compare 1..9).
+    reg [3:0] best_digit_reg;          // Running best digit.
+    reg [8:0] best_match_reg;          // Running best match count.
+    reg signed [10:0] best_metric_reg; // Running best metric.
+    reg [3:0] cand_digit_reg;          // Candidate digit in current compare phase.
+    reg [8:0] cand_match_reg;          // Candidate match count.
+    reg signed [10:0] cand_metric_reg; // Candidate metric.
 
-    wire roi_x_hit = (i_pix_x >= ROI_X) && (i_pix_x < ROI_X + ROI_W);
-    wire roi_y_hit = (i_pix_y >= ROI_Y) && (i_pix_y < ROI_Y + ROI_H);
-    wire roi_hit = roi_x_hit && roi_y_hit;
+    wire roi_x_hit = (i_pix_x >= i_roi_x) && (i_pix_x < i_roi_x + ROI_W);
+    wire roi_y_hit = (i_pix_y >= i_roi_y) && (i_pix_y < i_roi_y + ROI_H);
+    wire roi_hit = i_roi_enable && roi_x_hit && roi_y_hit;
 
-    wire [11:0] roi_x_rel = i_pix_x - ROI_X;
-    wire [11:0] roi_y_rel = i_pix_y - ROI_Y;
+    wire [11:0] roi_x_rel = i_pix_x - i_roi_x;
+    wire [11:0] roi_y_rel = i_pix_y - i_roi_y;
     wire stride_x_hit = (roi_x_rel % SAMPLE_STRIDE) == (SAMPLE_STRIDE / 2);
     wire stride_y_hit = (roi_y_rel % SAMPLE_STRIDE) == (SAMPLE_STRIDE / 2);
     wire sample_hit = roi_hit && stride_x_hit && stride_y_hit;
@@ -67,12 +72,10 @@ module digit_template_match_slot_core #(
     wire [7:0] sample_gy = roi_y_rel / SAMPLE_STRIDE;
     wire [7:0] sample_idx = (sample_gy * GRID_W[7:0]) + sample_gx;
 
-    reg [3:0]         cand_digit;
-    reg [8:0]         cand_match;
-    reg signed [10:0] cand_metric;
-    reg [3:0]         best_digit_next;
-    reg [8:0]         best_match_next;
-    reg signed [10:0] best_metric_next;
+    wire cand_better_w = (cand_metric_reg >= best_metric_reg);
+    wire [3:0] best_digit_sel_w = cand_better_w ? cand_digit_reg : best_digit_reg;
+    wire [8:0] best_match_sel_w = cand_better_w ? cand_match_reg : best_match_reg;
+    wire signed [10:0] best_metric_sel_w = cand_better_w ? cand_metric_reg : best_metric_reg;
 
     function template_bit;
         input [3:0] digit;
@@ -152,10 +155,14 @@ module digit_template_match_slot_core #(
             match_cnt_9 <= 9'd0;
             frame_done_pending <= 1'b0;
             eval_active <= 1'b0;
+            eval_phase <= 1'b0;
             eval_idx <= 4'd0;
             best_digit_reg <= 4'd0;
             best_match_reg <= 9'd0;
             best_metric_reg <= 11'sd0;
+            cand_digit_reg <= 4'd0;
+            cand_match_reg <= 9'd0;
+            cand_metric_reg <= 11'sd0;
             o_digit_valid <= 1'b0;
             o_digit_present <= 1'b0;
             o_digit_id <= 4'hF;
@@ -166,6 +173,7 @@ module digit_template_match_slot_core #(
             if (frame_done_pending && !eval_active) begin
                 frame_done_pending <= 1'b0;
                 eval_active <= 1'b1;
+                eval_phase <= 1'b0;
                 eval_idx <= 4'd0;
                 best_digit_reg <= 4'd0;
                 best_match_reg <= match_cnt_0;
@@ -173,38 +181,34 @@ module digit_template_match_slot_core #(
             end
 
             if (eval_active) begin
-                cand_digit = eval_idx + 4'd1;
-                cand_match = match_for_digit(cand_digit);
-                cand_metric = metric_from(cand_match, ones_for_digit(cand_digit));
-
-                best_digit_next = best_digit_reg;
-                best_match_next = best_match_reg;
-                best_metric_next = best_metric_reg;
-
-                if (cand_metric >= best_metric_reg) begin
-                    best_digit_next = cand_digit;
-                    best_match_next = cand_match;
-                    best_metric_next = cand_metric;
-                end
-
-                best_digit_reg <= best_digit_next;
-                best_match_reg <= best_match_next;
-                best_metric_reg <= best_metric_next;
-
-                if (eval_idx == 4'd8) begin
-                    eval_active <= 1'b0;
-                    o_digit_valid <= 1'b1;
-                    if (sample_fg_cnt >= MIN_FG_PIX) begin
-                        o_digit_present <= 1'b1;
-                        o_digit_id <= best_digit_next;
-                        o_digit_score <= best_match_next[8] ? 8'hFF : best_match_next[7:0];
-                    end else begin
-                        o_digit_present <= 1'b0;
-                        o_digit_id <= 4'hF;
-                        o_digit_score <= 8'd0;
-                    end
+                if (!eval_phase) begin
+                    cand_digit_reg <= eval_idx + 4'd1;
+                    cand_match_reg <= match_for_digit(eval_idx + 4'd1);
+                    cand_metric_reg <= metric_from(match_for_digit(eval_idx + 4'd1),
+                                                   ones_for_digit(eval_idx + 4'd1));
+                    eval_phase <= 1'b1;
                 end else begin
-                    eval_idx <= eval_idx + 1'b1;
+                    best_digit_reg <= best_digit_sel_w;
+                    best_match_reg <= best_match_sel_w;
+                    best_metric_reg <= best_metric_sel_w;
+
+                    if (eval_idx == 4'd8) begin
+                        eval_active <= 1'b0;
+                        eval_phase <= 1'b0;
+                        o_digit_valid <= 1'b1;
+                        if (i_roi_enable && (sample_fg_cnt >= MIN_FG_PIX)) begin
+                            o_digit_present <= 1'b1;
+                            o_digit_id <= best_digit_sel_w;
+                            o_digit_score <= best_match_sel_w[8] ? 8'hFF : best_match_sel_w[7:0];
+                        end else begin
+                            o_digit_present <= 1'b0;
+                            o_digit_id <= 4'hF;
+                            o_digit_score <= 8'd0;
+                        end
+                    end else begin
+                        eval_idx <= eval_idx + 1'b1;
+                        eval_phase <= 1'b0;
+                    end
                 end
             end
 
@@ -245,4 +249,3 @@ module digit_template_match_slot_core #(
     end
 
 endmodule
-
