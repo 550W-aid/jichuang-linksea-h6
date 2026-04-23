@@ -267,3 +267,67 @@
 - The video-only board-facing image boundary now has both clean Passkey STA and
   native eLinx route evidence. Ethernet and SDRAM remain intentionally outside
   this image signoff boundary.
+
+## Update 2026-04-23 19:55 HKT
+
+### Minimal gaussian-only board-facing boundary
+
+- Stable short-path project root:
+  `D:\Work\FPGA\eLinx\VideoProc\VideoOnlySTA`
+- Wrapper top file:
+  `D:\Work\FPGA\eLinx\VideoProc\VideoProcess.srcs\sources_1\new\VP_Top_board_video_only.v`
+- Active video top in this mode:
+  `D:\Work\FPGA\eLinx\VideoProc\VideoProcess.srcs\sources_1\new\DISP\vga_top_gaussian_only.v`
+- Active image chain:
+  synthetic RGB checkerboard -> `grayscale_stream_std` ->
+  `window3x3_stream_std` -> `gaussian3x3_stream_std` -> VGA timing output
+- Boundary intent:
+  keep the board pins, PLL, VGA timing, and image-processing stream handshake
+  present while removing the full multi-algorithm demo mux, Ethernet, and SDRAM
+  from this signoff boundary.
+
+### Fresh short-path clean STA evidence
+
+- Command:
+  `powershell -ExecutionPolicy Bypass -File D:\Work\FPGA\eLinx\VideoProc\VideoProcess.srcs\sources_1\new\DELIV\tools\elinx\run_elinx_video_only_project.ps1`
+- Clean STA report:
+  `D:\Work\FPGA\eLinx\VideoProc\VideoOnlySTA\VideoOnlySTA.runs\sta_clean\VideoOnlySTA_postmap_sta_clean.rpt`
+- Result:
+  `PASS`
+- Overall setup:
+  `WNS = +11.837 ns`, `TNS = 0.000 ns`
+- Overall hold:
+  `WHS = +1.600 ns`, `THS = 0.000 ns`
+- PLL 125 MHz report:
+  no setup or hold paths found in this video-only boundary.
+- Tool result:
+  `quartus_sta` completed with `0 errors, 0 warnings`.
+
+### Fresh short-path native eLinx route evidence
+
+- Native route log:
+  `D:\Work\FPGA\eLinx\VideoProc\VideoOnlySTA\VideoOnlySTA.runs\imple_1\VideoOnlySTA_route_stdout.log`
+- Route slack report:
+  `D:\Work\FPGA\eLinx\VideoProc\VideoOnlySTA\VideoOnlySTA.runs\imple_1\VideoOnlySTA.slack.rpt`
+- Result:
+  `PASS`
+- Native route summary:
+  `WNS = 0.000 ns`
+  `WHS = 0.000 ns`
+  `TNS = 0.000 ns`
+  `THS = 0.000 ns`
+- Reported clock limits:
+  `sys_clk Fmax = 334.896 MHz`
+  `clk_25m domain Fmax = 27.224 MHz`
+- Smallest routed setup margin:
+  `all_path_min_slack = 3.268 ns`
+- Improvement versus the previous video-only route:
+  `all_path_min_slack` improved from `0.061 ns` to `3.268 ns` after replacing
+  the full demo video top with the gaussian-only board-facing top.
+
+### Updated honest statement
+
+- This signs off the minimal gaussian-only board-facing image path in eLinx.
+- This does not sign off the full multi-algorithm VGA demo menu.
+- The full demo menu can be reintroduced later as a separate integration step;
+  it should not inherit this gaussian-only timing evidence automatically.

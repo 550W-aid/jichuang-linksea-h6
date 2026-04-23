@@ -23,20 +23,26 @@
 module pll_1(
 	inclk0,
 	c0,
-	c1);
+	c1,
+	c2);
 
 	input	inclk0;
 	output	c0;
 	output	c1;
+	output	c2;
 `ifdef SIM_PLL_STUB
 	localparam integer C0_HALF_PERIOD_PS = 4000;
 	localparam integer C1_HALF_PERIOD_PS = 20000;
+	localparam integer C2_HALF_PERIOD_PS = 4000;
+	localparam integer C2_PHASE_SHIFT_PS = 2000;
 
 	reg c0_reg;
 	reg c1_reg;
+	reg c2_reg;
 
 	assign c0 = c0_reg;
 	assign c1 = c1_reg;
+	assign c2 = c2_reg;
 
 	initial begin
 		c0_reg = 1'b0;
@@ -49,10 +55,18 @@ module pll_1(
 		@(posedge inclk0);
 		forever #(C1_HALF_PERIOD_PS) c1_reg = ~c1_reg;
 	end
+
+	initial begin
+		c2_reg = 1'b0;
+		@(posedge inclk0);
+		#(C2_PHASE_SHIFT_PS);
+		forever #(C2_HALF_PERIOD_PS) c2_reg = ~c2_reg;
+	end
 `else
 	wire[5:0] wireC;
 	assign c0 = wireC[0];
 	assign c1 = wireC[1];
+	assign c2 = wireC[2];
 
 	altpll	altpll_component (
 				.inclk ({1'h0, inclk0}),
@@ -98,6 +112,10 @@ module pll_1(
 		altpll_component.clk1_duty_cycle = 50,
 		altpll_component.clk1_multiply_by = 30,
 		altpll_component.clk1_phase_shift = "0",
+		altpll_component.clk2_divide_by = 12,
+		altpll_component.clk2_duty_cycle = 50,
+		altpll_component.clk2_multiply_by = 30,
+		altpll_component.clk2_phase_shift = "2000",
 		altpll_component.clk5_divide_by = 30,
 		altpll_component.clk5_duty_cycle = 50,
 		altpll_component.clk5_multiply_by = 30,
@@ -110,7 +128,7 @@ module pll_1(
 		altpll_component.port_locked = "PORT_UNUSED",
 		altpll_component.port_clk0 = "PORT_USED",
 		altpll_component.port_clk1 = "PORT_USED",
-		altpll_component.port_clk2 = "PORT_UNUSED",
+		altpll_component.port_clk2 = "PORT_USED",
 		altpll_component.port_clk3 = "PORT_UNUSED",
 		altpll_component.port_clk4 = "PORT_UNUSED",
 		altpll_component.port_clk5 = "PORT_USED",

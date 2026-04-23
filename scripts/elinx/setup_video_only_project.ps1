@@ -20,6 +20,7 @@ $sourceSynthPsf = Join-Path $SourceProjectRoot "VideoProcess.runs\\synth_1\\Vide
 $sourceImplPsf = Join-Path $SourceProjectRoot "VideoProcess.runs\\imple_1\\VideoProcess.run.psf"
 $sourceCleanSdc = Join-Path $SourceProjectRoot "VideoProcess.srcs\\constrs_1\\new\\VideoProcess_sta_clean.sdc"
 $wrapperTop = Join-Path $SourceProjectRoot "VideoProcess.srcs\\sources_1\\new\\VP_Top_board_video_only.v"
+$minimalVgaTop = Join-Path $SourceProjectRoot "VideoProcess.srcs\\sources_1\\new\\DISP\\vga_top_gaussian_only.v"
 
 $projectRunsRoot = Join-Path $OutputProjectRoot "$ProjectName.runs"
 $synthRoot = Join-Path $projectRunsRoot "synth_1"
@@ -48,6 +49,9 @@ $qsfText = [regex]::Replace(
     'set_global_assignment -name VERILOG_FILE \".*/VP_Top\.v\"',
     ('set_global_assignment -name VERILOG_FILE "{0}"' -f (Convert-ToUnixPath $wrapperTop))
 )
+if ($qsfText -notmatch [regex]::Escape((Convert-ToUnixPath $minimalVgaTop))) {
+    $qsfText += "`r`n" + ('set_global_assignment -name VERILOG_FILE "{0}"' -f (Convert-ToUnixPath $minimalVgaTop)) + "`r`n"
+}
 Set-Content -Path (Join-Path $OutputProjectRoot "$ProjectName.qsf") -Value $qsfText -Encoding ASCII
 
 [xml]$eprXml = Get-Content -Path $sourceEpr

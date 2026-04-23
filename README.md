@@ -5,13 +5,13 @@ This branch currently carries a trimmed `VideoProcess` FPGA project snapshot sui
 ## Current status
 
 - Top-level entity: `VP_Top`
-- Current integration mode: SDRAM and Ethernet are tied off in top-level logic, and the active display path is a minimal VGA demo chain
-- Active image chain: `grayscale_stream_std -> window3x3_stream_std -> gaussian3x3_stream_demo`
+- Current signoff mode: SDRAM and Ethernet are tied off in the board-video-only wrapper, and the active display path is a minimal gaussian-only VGA chain
+- Active image chain: synthetic RGB pattern -> `grayscale_stream_std -> window3x3_stream_std -> gaussian3x3_stream_std`
 - Project GUI metadata has been aligned so eLinx no longer defaults the top module to `arp`
 - Latest checked implementation timing summary is copied under `reports/imple_1/`
 - Both `iverilog` and ModelSim top-level video simulations now pass on the workstation
-- A short-path eLinx video-only signoff project has been validated at
-  `D:\Work\FPGA\eLinx\VideoProc\VideoOnlySTA` with clean STA and native route passing
+- A short-path eLinx gaussian-only signoff project has been validated at
+  `D:\Work\FPGA\eLinx\VideoProc\VideoOnlySTA` with clean STA and native route passing; this does not sign off the full multi-algorithm demo menu
 
 ## What is included
 

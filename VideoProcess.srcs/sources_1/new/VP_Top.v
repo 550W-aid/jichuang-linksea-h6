@@ -695,9 +695,13 @@ module VP_Top(
             );
         end
     endgenerate
-    // Drive the on-board VGA path directly from the stream-demo top so the
-    // image-processing chain is present in the board-facing netlist.
+    // Drive the on-board VGA path directly from an image-processing top so the
+    // video chain is present in the board-facing netlist.
+`ifdef CODEX_BOARD_VIDEO_GAUSSIAN_ONLY
+    vga_top_gaussian_only u_vga_top(
+`else
     vga_top u_vga_top(
+`endif
         .clk_25m      ( clk_25M      ),
         .rst_n        ( sys_rst_n    ),
         .key_next     ( touch_key    ),
