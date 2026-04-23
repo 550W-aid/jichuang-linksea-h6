@@ -10,6 +10,8 @@ This branch currently carries a trimmed `VideoProcess` FPGA project snapshot sui
 - Project GUI metadata has been aligned so eLinx no longer defaults the top module to `arp`
 - Latest checked implementation timing summary is copied under `reports/imple_1/`
 - Both `iverilog` and ModelSim top-level video simulations now pass on the workstation
+- A short-path eLinx video-only signoff project has been validated at
+  `D:\Work\FPGA\eLinx\VideoProc\VideoOnlySTA` with clean STA and native route passing
 
 ## What is included
 
@@ -35,4 +37,7 @@ This branch currently carries a trimmed `VideoProcess` FPGA project snapshot sui
 - The default simulation entry in `VideoProcess.epr` now points to `VP_video_tb`.
 - `pll_1.v` now has a `SIM_PLL_STUB` branch for lightweight `iverilog` simulation while preserving the original vendor `altpll` path for synthesis and ModelSim.
 - Use `scripts/sim/run_vp_top_iverilog.ps1` for the fast stubbed top-level run and `scripts/sim/run_vp_top_modelsim.ps1` for the Quartus-library vendor simulation run.
+- Use `scripts/elinx/run_elinx_video_only_project.ps1` to rebuild the D-drive
+  `VideoOnlySTA` image-only boundary; the report summary is in
+  `reports/ELINX_VIDEO_ONLY_STATUS_2026-04-23.md`.
 - The original full archive on the workstation contains much larger reference data that was not committed to keep the branch lightweight.
