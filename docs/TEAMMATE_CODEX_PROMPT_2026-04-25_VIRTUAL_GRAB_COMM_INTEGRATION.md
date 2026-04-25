@@ -17,6 +17,7 @@
 
 - `delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/D_reference_not_direct_board_ip/03_virtual_grab_host_algorithm_only/README.md`
 - `delivery/CCIC_H6A_BOARD_DELIVERY_2026-04-19/D_reference_not_direct_board_ip/03_virtual_grab_host_algorithm_only/TIMING_STATUS_138P5MHZ.md`
+- `tools/host_pc/virtual_grab_pc_renderer/README.md`
 
 你需要重点使用的 RTL：
 
@@ -37,8 +38,9 @@
 3. 保留两个隐藏按钮输入：
    - `grab_btn_raw`
    - `release_btn_raw`
-4. 用你那边的整板工程做综合和时序检查，时钟约束按 `7.22ns`。
-5. 如果不过时序，优先在通信外围或顶层路径修，不要先破坏算法边界。
+4. 优先复用仓库里现成的 PC 渲染器 `tools/host_pc/virtual_grab_pc_renderer`，不要无必要重写上位机渲染逻辑。
+5. 用你那边的整板工程做综合和时序检查，时钟约束按 `7.22ns`。
+6. 如果不过时序，优先在通信外围或顶层路径修，不要先破坏算法边界。
 
 你完成后需要明确汇报：
 

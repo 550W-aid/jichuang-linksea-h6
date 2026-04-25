@@ -1,0 +1,4 @@
+{"frame_id":1,"origin":{"x":960,"y":540},"green":{"x":1110,"y":540,"radius":36},"red":{"x":860,"y":620,"radius":42},"blue":{"x":800,"y":560,"radius":58}}
+{"frame_id":2,"origin":{"x":960,"y":540},"green":{"x":1110,"y":540,"radius":36},"red":{"x":900,"y":610,"radius":42},"blue":{"x":840,"y":540,"radius":58}}
+{"frame_id":3,"origin":{"x":960,"y":540},"green":{"x":1110,"y":540,"radius":36},"red":{"x":950,"y":590,"radius":42},"blue":{"x":900,"y":515,"radius":58}}
+{"frame_id":4,"origin":{"x":960,"y":540},"green":{"x":1110,"y":540,"radius":36},"red":{"x":1000,"y":570,"radius":42},"blue":{"x":960,"y":495,"radius":58}}
