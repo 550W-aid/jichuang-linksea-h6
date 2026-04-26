@@ -1,0 +1,11 @@
+backups/
+db/
+incremental_db/
+sim/
+sim_ref/
+sim_ref_debug/
+sim_real_lib/
+*.runs/
+*.log
+*.jou
+*.str
