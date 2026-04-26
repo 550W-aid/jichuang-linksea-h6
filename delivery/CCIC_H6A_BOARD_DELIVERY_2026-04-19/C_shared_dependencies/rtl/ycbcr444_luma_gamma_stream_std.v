@@ -305,7 +305,10 @@ module ycbcr444_luma_gamma_stream_std #(
         begin
             case (GAMMA_MODE)
                 2'd0: gamma_luma = value;
-                2'd1: gamma_luma = gamma_luma_sqrt(value);
+                // Mode 1 is reserved for the low-light pipeline used in TOP1.
+                // Keep luma unchanged here and perform segmented adaptive lifting
+                // in the next stage so highlights are not globally over-brightened.
+                2'd1: gamma_luma = value;
                 2'd2: gamma_luma = (value * value) >> 8;
                 default: begin
                     if (value < 8'd96) begin
@@ -332,6 +335,55 @@ module ycbcr444_luma_gamma_stream_std #(
                 apply_brightness_offset = 8'hFF;
             end else begin
                 apply_brightness_offset = adjusted_y[7:0];
+            end
+        end
+    endfunction
+
+    function [7:0] dark_region_gain;
+        input [7:0] base_y;
+        begin
+            if (base_y < 8'd48) begin
+                dark_region_gain = 8'd255;
+            end else if (base_y < 8'd96) begin
+                dark_region_gain = 8'd192;
+            end else if (base_y < 8'd144) begin
+                dark_region_gain = 8'd96;
+            end else if (base_y < 8'd192) begin
+                dark_region_gain = 8'd32;
+            end else begin
+                dark_region_gain = 8'd0;
+            end
+        end
+    endfunction
+
+    function [7:0] apply_darkness_enhance;
+        input [7:0]        base_y;
+        input signed [8:0] offset;
+        reg [7:0]          strength_u8;
+        reg [7:0]          segment_gain;
+        reg [7:0]          headroom;
+        reg [15:0]         boost_mul0;
+        reg [23:0]         boost_mul1;
+        reg [8:0]          boosted_y;
+        begin
+            if (offset <= 9'sd0) begin
+                apply_darkness_enhance = apply_brightness_offset(base_y, offset);
+            end else begin
+                strength_u8 = offset[7:0];
+                segment_gain = dark_region_gain(base_y);
+                headroom = 8'hFF - base_y;
+
+                // Piecewise dark-region gain plus headroom weighting:
+                // dark pixels get larger boost, highlights stay nearly unchanged.
+                boost_mul0 = headroom * strength_u8;
+                boost_mul1 = boost_mul0 * segment_gain;
+                boosted_y = {1'b0, base_y} + ((boost_mul1 + 24'd32768) >> 16);
+
+                if (boosted_y > 9'd255) begin
+                    apply_darkness_enhance = 8'hFF;
+                end else begin
+                    apply_darkness_enhance = boosted_y[7:0];
+                end
             end
         end
     endfunction
@@ -363,7 +415,7 @@ module ycbcr444_luma_gamma_stream_std #(
                     for (lane_idx = 0; lane_idx < MAX_LANES; lane_idx = lane_idx + 1) begin
                         if (stage0_keep[lane_idx]) begin
                             m_data[lane_idx*24 +: 24] <= {
-                                apply_brightness_offset(
+                                apply_darkness_enhance(
                                     stage0_data[lane_idx*24 + 16 +: 8],
                                     stage0_brightness_offset
                                 ),
