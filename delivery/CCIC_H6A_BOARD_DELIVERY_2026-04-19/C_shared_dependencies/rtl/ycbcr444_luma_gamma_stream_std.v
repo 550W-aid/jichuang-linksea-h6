@@ -25,6 +25,8 @@ module ycbcr444_luma_gamma_stream_std #(
 
     integer lane_idx;
     wire has_active_lane;
+    wire stage3_ready;
+    wire stage2_ready;
     wire stage1_ready;
     wire stage0_ready;
 
@@ -35,6 +37,35 @@ module ycbcr444_luma_gamma_stream_std #(
     reg                         stage0_eol;
     reg                         stage0_eof;
     reg  signed [8:0]           stage0_brightness_offset;
+
+    reg                         stage1_valid;
+    reg  [MAX_LANES*24-1:0]     stage1_data;
+    reg  [MAX_LANES*8-1:0]      stage1_segment_gain;
+    reg  [MAX_LANES*8-1:0]      stage1_headroom;
+    reg  [MAX_LANES-1:0]        stage1_keep;
+    reg                         stage1_sof;
+    reg                         stage1_eol;
+    reg                         stage1_eof;
+    reg  signed [8:0]           stage1_brightness_offset;
+
+    reg                         stage2_valid;
+    reg  [MAX_LANES*24-1:0]     stage2_data;
+    reg  [MAX_LANES*16-1:0]     stage2_boost_mul0;
+    reg  [MAX_LANES*8-1:0]      stage2_segment_gain;
+    reg  [MAX_LANES-1:0]        stage2_keep;
+    reg                         stage2_sof;
+    reg                         stage2_eol;
+    reg                         stage2_eof;
+    reg  signed [8:0]           stage2_brightness_offset;
+
+    reg                         stage3_valid;
+    reg  [MAX_LANES*24-1:0]     stage3_data;
+    reg  [MAX_LANES*24-1:0]     stage3_boost_mul1;
+    reg  [MAX_LANES-1:0]        stage3_keep;
+    reg                         stage3_sof;
+    reg                         stage3_eol;
+    reg                         stage3_eof;
+    reg  signed [8:0]           stage3_brightness_offset;
 
     function [7:0] gamma_luma_sqrt;
         input [7:0] value;
@@ -356,41 +387,31 @@ module ycbcr444_luma_gamma_stream_std #(
         end
     endfunction
 
-    function [7:0] apply_darkness_enhance;
+    function [7:0] finalize_darkness_enhance;
         input [7:0]        base_y;
         input signed [8:0] offset;
-        reg [7:0]          strength_u8;
-        reg [7:0]          segment_gain;
-        reg [7:0]          headroom;
-        reg [15:0]         boost_mul0;
-        reg [23:0]         boost_mul1;
+        input [23:0]       boost_mul1;
         reg [8:0]          boosted_y;
         begin
             if (offset <= 9'sd0) begin
-                apply_darkness_enhance = apply_brightness_offset(base_y, offset);
+                finalize_darkness_enhance = apply_brightness_offset(base_y, offset);
             end else begin
-                strength_u8 = offset[7:0];
-                segment_gain = dark_region_gain(base_y);
-                headroom = 8'hFF - base_y;
-
-                // Piecewise dark-region gain plus headroom weighting:
-                // dark pixels get larger boost, highlights stay nearly unchanged.
-                boost_mul0 = headroom * strength_u8;
-                boost_mul1 = boost_mul0 * segment_gain;
                 boosted_y = {1'b0, base_y} + ((boost_mul1 + 24'd32768) >> 16);
 
                 if (boosted_y > 9'd255) begin
-                    apply_darkness_enhance = 8'hFF;
+                    finalize_darkness_enhance = 8'hFF;
                 end else begin
-                    apply_darkness_enhance = boosted_y[7:0];
+                    finalize_darkness_enhance = boosted_y[7:0];
                 end
             end
         end
     endfunction
 
     assign has_active_lane = |s_keep;
-    assign stage1_ready = (~m_valid) | m_ready;
-    assign stage0_ready = (~stage0_valid) | stage1_ready;
+    assign stage3_ready = (~m_valid) | m_ready;
+    assign stage2_ready = (~stage3_valid) | stage3_ready;
+    assign stage1_ready = (~stage2_valid) | stage2_ready;
+    assign stage0_ready = (~stage1_valid) | stage1_ready;
     assign s_ready = stage0_ready;
 
     always @(posedge clk or negedge rst_n) begin
@@ -402,6 +423,32 @@ module ycbcr444_luma_gamma_stream_std #(
             stage0_eol   <= 1'b0;
             stage0_eof   <= 1'b0;
             stage0_brightness_offset <= 9'sd0;
+            stage1_valid <= 1'b0;
+            stage1_data  <= {MAX_LANES*24{1'b0}};
+            stage1_segment_gain <= {MAX_LANES*8{1'b0}};
+            stage1_headroom <= {MAX_LANES*8{1'b0}};
+            stage1_keep  <= {MAX_LANES{1'b0}};
+            stage1_sof   <= 1'b0;
+            stage1_eol   <= 1'b0;
+            stage1_eof   <= 1'b0;
+            stage1_brightness_offset <= 9'sd0;
+            stage2_valid <= 1'b0;
+            stage2_data  <= {MAX_LANES*24{1'b0}};
+            stage2_boost_mul0 <= {MAX_LANES*16{1'b0}};
+            stage2_segment_gain <= {MAX_LANES*8{1'b0}};
+            stage2_keep  <= {MAX_LANES{1'b0}};
+            stage2_sof   <= 1'b0;
+            stage2_eol   <= 1'b0;
+            stage2_eof   <= 1'b0;
+            stage2_brightness_offset <= 9'sd0;
+            stage3_valid <= 1'b0;
+            stage3_data  <= {MAX_LANES*24{1'b0}};
+            stage3_boost_mul1 <= {MAX_LANES*24{1'b0}};
+            stage3_keep  <= {MAX_LANES{1'b0}};
+            stage3_sof   <= 1'b0;
+            stage3_eol   <= 1'b0;
+            stage3_eof   <= 1'b0;
+            stage3_brightness_offset <= 9'sd0;
             m_valid <= 1'b0;
             m_data  <= {MAX_LANES*24{1'b0}};
             m_keep  <= {MAX_LANES{1'b0}};
@@ -409,27 +456,28 @@ module ycbcr444_luma_gamma_stream_std #(
             m_eol   <= 1'b0;
             m_eof   <= 1'b0;
         end else begin
-            if (stage1_ready) begin
-                m_valid <= stage0_valid;
-                if (stage0_valid) begin
+            if (stage3_ready) begin
+                m_valid <= stage3_valid;
+                if (stage3_valid) begin
                     for (lane_idx = 0; lane_idx < MAX_LANES; lane_idx = lane_idx + 1) begin
-                        if (stage0_keep[lane_idx]) begin
+                        if (stage3_keep[lane_idx]) begin
                             m_data[lane_idx*24 +: 24] <= {
-                                apply_darkness_enhance(
-                                    stage0_data[lane_idx*24 + 16 +: 8],
-                                    stage0_brightness_offset
+                                finalize_darkness_enhance(
+                                    stage3_data[lane_idx*24 + 16 +: 8],
+                                    stage3_brightness_offset,
+                                    stage3_boost_mul1[lane_idx*24 +: 24]
                                 ),
-                                stage0_data[lane_idx*24 + 8 +: 8],
-                                stage0_data[lane_idx*24 +: 8]
+                                stage3_data[lane_idx*24 + 8 +: 8],
+                                stage3_data[lane_idx*24 +: 8]
                             };
                         end else begin
                             m_data[lane_idx*24 +: 24] <= 24'd0;
                         end
                     end
-                    m_keep <= stage0_keep;
-                    m_sof  <= stage0_sof;
-                    m_eol  <= stage0_eol;
-                    m_eof  <= stage0_eof;
+                    m_keep <= stage3_keep;
+                    m_sof  <= stage3_sof;
+                    m_eol  <= stage3_eol;
+                    m_eof  <= stage3_eof;
                 end else begin
                     m_data <= {MAX_LANES*24{1'b0}};
                     m_keep <= {MAX_LANES{1'b0}};
@@ -439,7 +487,101 @@ module ycbcr444_luma_gamma_stream_std #(
                 end
             end
 
+            if (stage2_ready) begin
+                stage3_valid <= stage2_valid;
+                if (stage2_valid) begin
+                    for (lane_idx = 0; lane_idx < MAX_LANES; lane_idx = lane_idx + 1) begin
+                        if (stage2_keep[lane_idx]) begin
+                            stage3_boost_mul1[lane_idx*24 +: 24] <=
+                                stage2_boost_mul0[lane_idx*16 +: 16] *
+                                stage2_segment_gain[lane_idx*8 +: 8];
+                            stage3_data[lane_idx*24 +: 24] <= stage2_data[lane_idx*24 +: 24];
+                        end else begin
+                            stage3_boost_mul1[lane_idx*24 +: 24] <= 24'd0;
+                            stage3_data[lane_idx*24 +: 24] <= 24'd0;
+                        end
+                    end
+                    stage3_keep <= stage2_keep;
+                    stage3_sof  <= stage2_sof;
+                    stage3_eol  <= stage2_eol;
+                    stage3_eof  <= stage2_eof;
+                    stage3_brightness_offset <= stage2_brightness_offset;
+                end else begin
+                    stage3_boost_mul1 <= {MAX_LANES*24{1'b0}};
+                    stage3_data <= {MAX_LANES*24{1'b0}};
+                    stage3_keep <= {MAX_LANES{1'b0}};
+                    stage3_sof  <= 1'b0;
+                    stage3_eol  <= 1'b0;
+                    stage3_eof  <= 1'b0;
+                    stage3_brightness_offset <= 9'sd0;
+                end
+            end
+
+            if (stage1_ready) begin
+                stage2_valid <= stage1_valid;
+                if (stage1_valid) begin
+                    for (lane_idx = 0; lane_idx < MAX_LANES; lane_idx = lane_idx + 1) begin
+                        if (stage1_keep[lane_idx]) begin
+                            stage2_boost_mul0[lane_idx*16 +: 16] <=
+                                stage1_headroom[lane_idx*8 +: 8] *
+                                stage1_brightness_offset[7:0];
+                            stage2_segment_gain[lane_idx*8 +: 8] <= stage1_segment_gain[lane_idx*8 +: 8];
+                            stage2_data[lane_idx*24 +: 24] <= stage1_data[lane_idx*24 +: 24];
+                        end else begin
+                            stage2_boost_mul0[lane_idx*16 +: 16] <= 16'd0;
+                            stage2_segment_gain[lane_idx*8 +: 8] <= 8'd0;
+                            stage2_data[lane_idx*24 +: 24] <= 24'd0;
+                        end
+                    end
+                    stage2_keep <= stage1_keep;
+                    stage2_sof  <= stage1_sof;
+                    stage2_eol  <= stage1_eol;
+                    stage2_eof  <= stage1_eof;
+                    stage2_brightness_offset <= stage1_brightness_offset;
+                end else begin
+                    stage2_boost_mul0 <= {MAX_LANES*16{1'b0}};
+                    stage2_segment_gain <= {MAX_LANES*8{1'b0}};
+                    stage2_data <= {MAX_LANES*24{1'b0}};
+                    stage2_keep <= {MAX_LANES{1'b0}};
+                    stage2_sof  <= 1'b0;
+                    stage2_eol  <= 1'b0;
+                    stage2_eof  <= 1'b0;
+                    stage2_brightness_offset <= 9'sd0;
+                end
+            end
+
             if (stage0_ready) begin
+                stage1_valid <= stage0_valid;
+                if (stage0_valid) begin
+                    for (lane_idx = 0; lane_idx < MAX_LANES; lane_idx = lane_idx + 1) begin
+                        if (stage0_keep[lane_idx]) begin
+                            stage1_data[lane_idx*24 +: 24] <= stage0_data[lane_idx*24 +: 24];
+                            stage1_segment_gain[lane_idx*8 +: 8] <= dark_region_gain(stage0_data[lane_idx*24 + 16 +: 8]);
+                            stage1_headroom[lane_idx*8 +: 8] <= 8'hFF - stage0_data[lane_idx*24 + 16 +: 8];
+                        end else begin
+                            stage1_data[lane_idx*24 +: 24] <= 24'd0;
+                            stage1_segment_gain[lane_idx*8 +: 8] <= 8'd0;
+                            stage1_headroom[lane_idx*8 +: 8] <= 8'd0;
+                        end
+                    end
+                    stage1_keep <= stage0_keep;
+                    stage1_sof  <= stage0_sof;
+                    stage1_eol  <= stage0_eol;
+                    stage1_eof  <= stage0_eof;
+                    stage1_brightness_offset <= stage0_brightness_offset;
+                end else begin
+                    stage1_data <= {MAX_LANES*24{1'b0}};
+                    stage1_segment_gain <= {MAX_LANES*8{1'b0}};
+                    stage1_headroom <= {MAX_LANES*8{1'b0}};
+                    stage1_keep <= {MAX_LANES{1'b0}};
+                    stage1_sof  <= 1'b0;
+                    stage1_eol  <= 1'b0;
+                    stage1_eof  <= 1'b0;
+                    stage1_brightness_offset <= 9'sd0;
+                end
+            end
+
+            if (s_ready) begin
                 stage0_valid <= s_valid && has_active_lane;
                 if (s_valid && has_active_lane) begin
                     stage0_brightness_offset <= brightness_offset;

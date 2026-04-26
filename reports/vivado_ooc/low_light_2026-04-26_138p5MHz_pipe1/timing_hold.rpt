@@ -1,0 +1,829 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2024.2 (win64) Build 5239630 Fri Nov 08 22:35:27 MST 2024
+| Date         : Sun Apr 26 19:42:20 2026
+| Host         : xjn running 64-bit major release  (build 9200)
+| Command      : report_timing -delay_type min -max_paths 20 -file C:/Users/a2945/Desktop/jichuang-linksea-h6/reports/vivado_ooc/low_light_2026-04-26_138p5MHz_pipe1/timing_hold.rpt
+| Design       : rgb_ycbcr_gamma_rgb_chain_top
+| Device       : 7z020-clg400
+| Speed File   : -1  PRODUCTION 1.12 2019-11-22
+| Design State : Routed
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (MET) :             0.132ns  (arrival time - required time)
+  Source:                 u_ycbcr444_luma_gamma/stage3_data_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_ycbcr444_luma_gamma/m_data_reg[1]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.273ns  (logic 0.186ns (68.106%)  route 0.087ns (31.894%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_ycbcr444_luma_gamma/clk
+    SLICE_X93Y67         FDCE                                         r  u_ycbcr444_luma_gamma/stage3_data_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X93Y67         FDCE (Prop_fdce_C_Q)         0.141     0.551 r  u_ycbcr444_luma_gamma/stage3_data_reg[1]/Q
+                         net (fo=1, routed)           0.087     0.638    u_ycbcr444_luma_gamma/stage3_data_reg_n_0_[1]
+    SLICE_X92Y67         LUT2 (Prop_lut2_I1_O)        0.045     0.683 r  u_ycbcr444_luma_gamma/m_data[1]_i_1__0/O
+                         net (fo=1, routed)           0.000     0.683    u_ycbcr444_luma_gamma/p_0_in1_in[1]
+    SLICE_X92Y67         FDCE                                         r  u_ycbcr444_luma_gamma/m_data_reg[1]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_ycbcr444_luma_gamma/clk
+    SLICE_X92Y67         FDCE                                         r  u_ycbcr444_luma_gamma/m_data_reg[1]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X92Y67         FDCE (Hold_fdce_C_D)         0.120     0.552    u_ycbcr444_luma_gamma/m_data_reg[1]
+  -------------------------------------------------------------------
+                         required time                         -0.552    
+                         arrival time                           0.683    
+  -------------------------------------------------------------------
+                         slack                                  0.132    
+
+Slack (MET) :             0.159ns  (arrival time - required time)
+  Source:                 u_ycbcr444_luma_gamma/stage0_data_reg[0]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_ycbcr444_luma_gamma/stage1_data_reg[0]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.272ns  (logic 0.186ns (68.463%)  route 0.086ns (31.537%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_ycbcr444_luma_gamma/clk
+    SLICE_X88Y68         FDCE                                         r  u_ycbcr444_luma_gamma/stage0_data_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X88Y68         FDCE (Prop_fdce_C_Q)         0.141     0.551 r  u_ycbcr444_luma_gamma/stage0_data_reg[0]/Q
+                         net (fo=1, routed)           0.086     0.637    u_ycbcr444_luma_gamma/stage0_data_reg_n_0_[0]
+    SLICE_X89Y68         LUT2 (Prop_lut2_I0_O)        0.045     0.682 r  u_ycbcr444_luma_gamma/stage1_data[0]_i_1/O
+                         net (fo=1, routed)           0.000     0.682    u_ycbcr444_luma_gamma/stage1_data[0]_i_1_n_0
+    SLICE_X89Y68         FDCE                                         r  u_ycbcr444_luma_gamma/stage1_data_reg[0]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_ycbcr444_luma_gamma/clk
+    SLICE_X89Y68         FDCE                                         r  u_ycbcr444_luma_gamma/stage1_data_reg[0]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X89Y68         FDCE (Hold_fdce_C_D)         0.091     0.523    u_ycbcr444_luma_gamma/stage1_data_reg[0]
+  -------------------------------------------------------------------
+                         required time                         -0.523    
+                         arrival time                           0.682    
+  -------------------------------------------------------------------
+                         slack                                  0.159    
+
+Slack (MET) :             0.179ns  (arrival time - required time)
+  Source:                 u_ycbcr444_luma_gamma/stage2_data_reg[10]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_ycbcr444_luma_gamma/stage3_data_reg[10]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.291ns  (logic 0.209ns (71.796%)  route 0.082ns (28.204%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_ycbcr444_luma_gamma/clk
+    SLICE_X90Y64         FDCE                                         r  u_ycbcr444_luma_gamma/stage2_data_reg[10]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X90Y64         FDCE (Prop_fdce_C_Q)         0.164     0.574 r  u_ycbcr444_luma_gamma/stage2_data_reg[10]/Q
+                         net (fo=1, routed)           0.082     0.656    u_ycbcr444_luma_gamma/stage2_data[10]
+    SLICE_X91Y64         LUT2 (Prop_lut2_I1_O)        0.045     0.701 r  u_ycbcr444_luma_gamma/stage3_data[10]_i_1/O
+                         net (fo=1, routed)           0.000     0.701    u_ycbcr444_luma_gamma/stage3_data[10]_i_1_n_0
+    SLICE_X91Y64         FDCE                                         r  u_ycbcr444_luma_gamma/stage3_data_reg[10]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_ycbcr444_luma_gamma/clk
+    SLICE_X91Y64         FDCE                                         r  u_ycbcr444_luma_gamma/stage3_data_reg[10]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X91Y64         FDCE (Hold_fdce_C_D)         0.091     0.523    u_ycbcr444_luma_gamma/stage3_data_reg[10]
+  -------------------------------------------------------------------
+                         required time                         -0.523    
+                         arrival time                           0.701    
+  -------------------------------------------------------------------
+                         slack                                  0.179    
+
+Slack (MET) :             0.183ns  (arrival time - required time)
+  Source:                 u_ycbcr444_luma_gamma/stage3_data_reg[3]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_ycbcr444_luma_gamma/m_data_reg[3]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.325ns  (logic 0.186ns (57.212%)  route 0.139ns (42.788%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_ycbcr444_luma_gamma/clk
+    SLICE_X93Y67         FDCE                                         r  u_ycbcr444_luma_gamma/stage3_data_reg[3]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X93Y67         FDCE (Prop_fdce_C_Q)         0.141     0.551 r  u_ycbcr444_luma_gamma/stage3_data_reg[3]/Q
+                         net (fo=1, routed)           0.139     0.690    u_ycbcr444_luma_gamma/stage3_data_reg_n_0_[3]
+    SLICE_X92Y67         LUT2 (Prop_lut2_I1_O)        0.045     0.735 r  u_ycbcr444_luma_gamma/m_data[3]_i_1__0/O
+                         net (fo=1, routed)           0.000     0.735    u_ycbcr444_luma_gamma/p_0_in1_in[3]
+    SLICE_X92Y67         FDCE                                         r  u_ycbcr444_luma_gamma/m_data_reg[3]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_ycbcr444_luma_gamma/clk
+    SLICE_X92Y67         FDCE                                         r  u_ycbcr444_luma_gamma/m_data_reg[3]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X92Y67         FDCE (Hold_fdce_C_D)         0.121     0.553    u_ycbcr444_luma_gamma/m_data_reg[3]
+  -------------------------------------------------------------------
+                         required time                         -0.553    
+                         arrival time                           0.735    
+  -------------------------------------------------------------------
+                         slack                                  0.183    
+
+Slack (MET) :             0.204ns  (arrival time - required time)
+  Source:                 u_ycbcr444_luma_gamma/stage0_data_reg[15]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_ycbcr444_luma_gamma/stage1_data_reg[15]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.333ns  (logic 0.230ns (69.067%)  route 0.103ns (30.933%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_ycbcr444_luma_gamma/clk
+    SLICE_X88Y65         FDCE                                         r  u_ycbcr444_luma_gamma/stage0_data_reg[15]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X88Y65         FDCE (Prop_fdce_C_Q)         0.128     0.538 r  u_ycbcr444_luma_gamma/stage0_data_reg[15]/Q
+                         net (fo=1, routed)           0.103     0.641    u_ycbcr444_luma_gamma/stage0_data_reg_n_0_[15]
+    SLICE_X88Y65         LUT2 (Prop_lut2_I0_O)        0.102     0.743 r  u_ycbcr444_luma_gamma/stage1_data[15]_i_1/O
+                         net (fo=1, routed)           0.000     0.743    u_ycbcr444_luma_gamma/stage1_data[15]_i_1_n_0
+    SLICE_X88Y65         FDCE                                         r  u_ycbcr444_luma_gamma/stage1_data_reg[15]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_ycbcr444_luma_gamma/clk
+    SLICE_X88Y65         FDCE                                         r  u_ycbcr444_luma_gamma/stage1_data_reg[15]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X88Y65         FDCE (Hold_fdce_C_D)         0.107     0.539    u_ycbcr444_luma_gamma/stage1_data_reg[15]
+  -------------------------------------------------------------------
+                         required time                         -0.539    
+                         arrival time                           0.743    
+  -------------------------------------------------------------------
+                         slack                                  0.204    
+
+Slack (MET) :             0.204ns  (arrival time - required time)
+  Source:                 u_ycbcr444_luma_gamma/stage0_data_reg[5]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_ycbcr444_luma_gamma/stage1_data_reg[5]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.333ns  (logic 0.230ns (69.067%)  route 0.103ns (30.933%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_ycbcr444_luma_gamma/clk
+    SLICE_X88Y68         FDCE                                         r  u_ycbcr444_luma_gamma/stage0_data_reg[5]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X88Y68         FDCE (Prop_fdce_C_Q)         0.128     0.538 r  u_ycbcr444_luma_gamma/stage0_data_reg[5]/Q
+                         net (fo=1, routed)           0.103     0.641    u_ycbcr444_luma_gamma/stage0_data_reg_n_0_[5]
+    SLICE_X88Y68         LUT2 (Prop_lut2_I0_O)        0.102     0.743 r  u_ycbcr444_luma_gamma/stage1_data[5]_i_1/O
+                         net (fo=1, routed)           0.000     0.743    u_ycbcr444_luma_gamma/stage1_data[5]_i_1_n_0
+    SLICE_X88Y68         FDCE                                         r  u_ycbcr444_luma_gamma/stage1_data_reg[5]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_ycbcr444_luma_gamma/clk
+    SLICE_X88Y68         FDCE                                         r  u_ycbcr444_luma_gamma/stage1_data_reg[5]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X88Y68         FDCE (Hold_fdce_C_D)         0.107     0.539    u_ycbcr444_luma_gamma/stage1_data_reg[5]
+  -------------------------------------------------------------------
+                         required time                         -0.539    
+                         arrival time                           0.743    
+  -------------------------------------------------------------------
+                         slack                                  0.204    
+
+Slack (MET) :             0.204ns  (arrival time - required time)
+  Source:                 u_ycbcr444_luma_gamma/stage0_data_reg[9]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_ycbcr444_luma_gamma/stage1_data_reg[9]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.333ns  (logic 0.230ns (69.067%)  route 0.103ns (30.933%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_ycbcr444_luma_gamma/clk
+    SLICE_X88Y64         FDCE                                         r  u_ycbcr444_luma_gamma/stage0_data_reg[9]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X88Y64         FDCE (Prop_fdce_C_Q)         0.128     0.538 r  u_ycbcr444_luma_gamma/stage0_data_reg[9]/Q
+                         net (fo=1, routed)           0.103     0.641    u_ycbcr444_luma_gamma/stage0_data_reg_n_0_[9]
+    SLICE_X88Y64         LUT2 (Prop_lut2_I0_O)        0.102     0.743 r  u_ycbcr444_luma_gamma/stage1_data[9]_i_1/O
+                         net (fo=1, routed)           0.000     0.743    u_ycbcr444_luma_gamma/stage1_data[9]_i_1_n_0
+    SLICE_X88Y64         FDCE                                         r  u_ycbcr444_luma_gamma/stage1_data_reg[9]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_ycbcr444_luma_gamma/clk
+    SLICE_X88Y64         FDCE                                         r  u_ycbcr444_luma_gamma/stage1_data_reg[9]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X88Y64         FDCE (Hold_fdce_C_D)         0.107     0.539    u_ycbcr444_luma_gamma/stage1_data_reg[9]
+  -------------------------------------------------------------------
+                         required time                         -0.539    
+                         arrival time                           0.743    
+  -------------------------------------------------------------------
+                         slack                                  0.204    
+
+Slack (MET) :             0.209ns  (arrival time - required time)
+  Source:                 u_ycbcr444_luma_gamma/stage2_data_reg[19]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_ycbcr444_luma_gamma/stage3_data_reg[19]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.350ns  (logic 0.209ns (59.685%)  route 0.141ns (40.315%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_ycbcr444_luma_gamma/clk
+    SLICE_X94Y72         FDCE                                         r  u_ycbcr444_luma_gamma/stage2_data_reg[19]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X94Y72         FDCE (Prop_fdce_C_Q)         0.164     0.574 r  u_ycbcr444_luma_gamma/stage2_data_reg[19]/Q
+                         net (fo=1, routed)           0.141     0.715    u_ycbcr444_luma_gamma/stage2_data[19]
+    SLICE_X94Y71         LUT2 (Prop_lut2_I1_O)        0.045     0.760 r  u_ycbcr444_luma_gamma/stage3_data[19]_i_1/O
+                         net (fo=1, routed)           0.000     0.760    u_ycbcr444_luma_gamma/stage3_data[19]_i_1_n_0
+    SLICE_X94Y71         FDCE                                         r  u_ycbcr444_luma_gamma/stage3_data_reg[19]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_ycbcr444_luma_gamma/clk
+    SLICE_X94Y71         FDCE                                         r  u_ycbcr444_luma_gamma/stage3_data_reg[19]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X94Y71         FDCE (Hold_fdce_C_D)         0.120     0.552    u_ycbcr444_luma_gamma/stage3_data_reg[19]
+  -------------------------------------------------------------------
+                         required time                         -0.552    
+                         arrival time                           0.760    
+  -------------------------------------------------------------------
+                         slack                                  0.209    
+
+Slack (MET) :             0.214ns  (arrival time - required time)
+  Source:                 u_rgb888_to_ycbcr444/m_valid_reg/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_ycbcr444_luma_gamma/stage0_brightness_offset_reg[3]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.343ns  (logic 0.212ns (61.849%)  route 0.131ns (38.151%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_rgb888_to_ycbcr444/clk
+    SLICE_X86Y71         FDCE                                         r  u_rgb888_to_ycbcr444/m_valid_reg/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X86Y71         FDCE (Prop_fdce_C_Q)         0.164     0.574 r  u_rgb888_to_ycbcr444/m_valid_reg/Q
+                         net (fo=39, routed)          0.131     0.705    u_rgb888_to_ycbcr444/ycbcr_valid_w
+    SLICE_X87Y71         LUT2 (Prop_lut2_I0_O)        0.048     0.753 r  u_rgb888_to_ycbcr444/stage0_brightness_offset[3]_i_1/O
+                         net (fo=1, routed)           0.000     0.753    u_ycbcr444_luma_gamma/stage0_brightness_offset_reg[8]_0[3]
+    SLICE_X87Y71         FDCE                                         r  u_ycbcr444_luma_gamma/stage0_brightness_offset_reg[3]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_ycbcr444_luma_gamma/clk
+    SLICE_X87Y71         FDCE                                         r  u_ycbcr444_luma_gamma/stage0_brightness_offset_reg[3]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X87Y71         FDCE (Hold_fdce_C_D)         0.107     0.539    u_ycbcr444_luma_gamma/stage0_brightness_offset_reg[3]
+  -------------------------------------------------------------------
+                         required time                         -0.539    
+                         arrival time                           0.753    
+  -------------------------------------------------------------------
+                         slack                                  0.214    
+
+Slack (MET) :             0.214ns  (arrival time - required time)
+  Source:                 u_rgb888_to_ycbcr444/m_data_reg[18]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_ycbcr444_luma_gamma/stage0_data_reg[18]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.327ns  (logic 0.186ns (56.900%)  route 0.141ns (43.100%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_rgb888_to_ycbcr444/clk
+    SLICE_X84Y70         FDCE                                         r  u_rgb888_to_ycbcr444/m_data_reg[18]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X84Y70         FDCE (Prop_fdce_C_Q)         0.141     0.551 r  u_rgb888_to_ycbcr444/m_data_reg[18]/Q
+                         net (fo=1, routed)           0.141     0.692    u_rgb888_to_ycbcr444/ycbcr_data_w[18]
+    SLICE_X87Y70         LUT2 (Prop_lut2_I1_O)        0.045     0.737 r  u_rgb888_to_ycbcr444/stage0_data[18]_i_1__0/O
+                         net (fo=1, routed)           0.000     0.737    u_ycbcr444_luma_gamma/stage0_data_reg[23]_0[18]
+    SLICE_X87Y70         FDCE                                         r  u_ycbcr444_luma_gamma/stage0_data_reg[18]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_ycbcr444_luma_gamma/clk
+    SLICE_X87Y70         FDCE                                         r  u_ycbcr444_luma_gamma/stage0_data_reg[18]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X87Y70         FDCE (Hold_fdce_C_D)         0.091     0.523    u_ycbcr444_luma_gamma/stage0_data_reg[18]
+  -------------------------------------------------------------------
+                         required time                         -0.523    
+                         arrival time                           0.737    
+  -------------------------------------------------------------------
+                         slack                                  0.214    
+
+Slack (MET) :             0.215ns  (arrival time - required time)
+  Source:                 u_brightness_latch/pending_data_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_brightness_latch/active_data_reg[1]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.312ns  (logic 0.141ns (45.139%)  route 0.171ns (54.861%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_brightness_latch/clk
+    SLICE_X85Y72         FDCE                                         r  u_brightness_latch/pending_data_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X85Y72         FDCE (Prop_fdce_C_Q)         0.141     0.551 r  u_brightness_latch/pending_data_reg[1]/Q
+                         net (fo=1, routed)           0.171     0.723    u_brightness_latch/pending_data[1]
+    SLICE_X86Y72         FDCE                                         r  u_brightness_latch/active_data_reg[1]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_brightness_latch/clk
+    SLICE_X86Y72         FDCE                                         r  u_brightness_latch/active_data_reg[1]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X86Y72         FDCE (Hold_fdce_C_D)         0.076     0.508    u_brightness_latch/active_data_reg[1]
+  -------------------------------------------------------------------
+                         required time                         -0.508    
+                         arrival time                           0.723    
+  -------------------------------------------------------------------
+                         slack                                  0.215    
+
+Slack (MET) :             0.216ns  (arrival time - required time)
+  Source:                 u_ycbcr444_luma_gamma/stage2_brightness_offset_reg[7]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_ycbcr444_luma_gamma/stage3_brightness_offset_reg[7]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.344ns  (logic 0.209ns (60.737%)  route 0.135ns (39.263%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_ycbcr444_luma_gamma/clk
+    SLICE_X94Y72         FDCE                                         r  u_ycbcr444_luma_gamma/stage2_brightness_offset_reg[7]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X94Y72         FDCE (Prop_fdce_C_Q)         0.164     0.574 r  u_ycbcr444_luma_gamma/stage2_brightness_offset_reg[7]/Q
+                         net (fo=1, routed)           0.135     0.709    u_ycbcr444_luma_gamma/stage2_brightness_offset[7]
+    SLICE_X95Y72         LUT2 (Prop_lut2_I1_O)        0.045     0.754 r  u_ycbcr444_luma_gamma/stage3_brightness_offset[7]_i_1/O
+                         net (fo=1, routed)           0.000     0.754    u_ycbcr444_luma_gamma/stage3_brightness_offset[7]_i_1_n_0
+    SLICE_X95Y72         FDCE                                         r  u_ycbcr444_luma_gamma/stage3_brightness_offset_reg[7]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_ycbcr444_luma_gamma/clk
+    SLICE_X95Y72         FDCE                                         r  u_ycbcr444_luma_gamma/stage3_brightness_offset_reg[7]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X95Y72         FDCE (Hold_fdce_C_D)         0.107     0.539    u_ycbcr444_luma_gamma/stage3_brightness_offset_reg[7]
+  -------------------------------------------------------------------
+                         required time                         -0.539    
+                         arrival time                           0.754    
+  -------------------------------------------------------------------
+                         slack                                  0.216    
+
+Slack (MET) :             0.224ns  (arrival time - required time)
+  Source:                 u_brightness_latch/pending_data_reg[6]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_brightness_latch/active_data_reg[6]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.244ns  (logic 0.128ns (52.352%)  route 0.116ns (47.648%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_brightness_latch/clk
+    SLICE_X85Y72         FDCE                                         r  u_brightness_latch/pending_data_reg[6]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X85Y72         FDCE (Prop_fdce_C_Q)         0.128     0.538 r  u_brightness_latch/pending_data_reg[6]/Q
+                         net (fo=1, routed)           0.116     0.655    u_brightness_latch/pending_data[6]
+    SLICE_X86Y72         FDCE                                         r  u_brightness_latch/active_data_reg[6]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_brightness_latch/clk
+    SLICE_X86Y72         FDCE                                         r  u_brightness_latch/active_data_reg[6]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X86Y72         FDCE (Hold_fdce_C_D)        -0.001     0.431    u_brightness_latch/active_data_reg[6]
+  -------------------------------------------------------------------
+                         required time                         -0.431    
+                         arrival time                           0.655    
+  -------------------------------------------------------------------
+                         slack                                  0.224    
+
+Slack (MET) :             0.226ns  (arrival time - required time)
+  Source:                 u_brightness_latch/pending_data_reg[3]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_brightness_latch/active_data_reg[3]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.310ns  (logic 0.141ns (45.463%)  route 0.169ns (54.537%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_brightness_latch/clk
+    SLICE_X85Y72         FDCE                                         r  u_brightness_latch/pending_data_reg[3]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X85Y72         FDCE (Prop_fdce_C_Q)         0.141     0.551 r  u_brightness_latch/pending_data_reg[3]/Q
+                         net (fo=1, routed)           0.169     0.720    u_brightness_latch/pending_data[3]
+    SLICE_X86Y72         FDCE                                         r  u_brightness_latch/active_data_reg[3]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_brightness_latch/clk
+    SLICE_X86Y72         FDCE                                         r  u_brightness_latch/active_data_reg[3]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X86Y72         FDCE (Hold_fdce_C_D)         0.063     0.495    u_brightness_latch/active_data_reg[3]
+  -------------------------------------------------------------------
+                         required time                         -0.495    
+                         arrival time                           0.720    
+  -------------------------------------------------------------------
+                         slack                                  0.226    
+
+Slack (MET) :             0.226ns  (arrival time - required time)
+  Source:                 u_rgb888_to_ycbcr444/m_data_reg[8]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_ycbcr444_luma_gamma/stage0_data_reg[8]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.340ns  (logic 0.186ns (54.744%)  route 0.154ns (45.256%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_rgb888_to_ycbcr444/clk
+    SLICE_X88Y63         FDCE                                         r  u_rgb888_to_ycbcr444/m_data_reg[8]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X88Y63         FDCE (Prop_fdce_C_Q)         0.141     0.551 r  u_rgb888_to_ycbcr444/m_data_reg[8]/Q
+                         net (fo=1, routed)           0.154     0.705    u_rgb888_to_ycbcr444/ycbcr_data_w[8]
+    SLICE_X88Y64         LUT2 (Prop_lut2_I1_O)        0.045     0.750 r  u_rgb888_to_ycbcr444/stage0_data[8]_i_1__0/O
+                         net (fo=1, routed)           0.000     0.750    u_ycbcr444_luma_gamma/stage0_data_reg[23]_0[8]
+    SLICE_X88Y64         FDCE                                         r  u_ycbcr444_luma_gamma/stage0_data_reg[8]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_ycbcr444_luma_gamma/clk
+    SLICE_X88Y64         FDCE                                         r  u_ycbcr444_luma_gamma/stage0_data_reg[8]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X88Y64         FDCE (Hold_fdce_C_D)         0.092     0.524    u_ycbcr444_luma_gamma/stage0_data_reg[8]
+  -------------------------------------------------------------------
+                         required time                         -0.524    
+                         arrival time                           0.750    
+  -------------------------------------------------------------------
+                         slack                                  0.226    
+
+Slack (MET) :             0.227ns  (arrival time - required time)
+  Source:                 u_rgb888_to_ycbcr444/m_valid_reg/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_ycbcr444_luma_gamma/stage0_brightness_offset_reg[2]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.340ns  (logic 0.209ns (61.512%)  route 0.131ns (38.488%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_rgb888_to_ycbcr444/clk
+    SLICE_X86Y71         FDCE                                         r  u_rgb888_to_ycbcr444/m_valid_reg/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X86Y71         FDCE (Prop_fdce_C_Q)         0.164     0.574 r  u_rgb888_to_ycbcr444/m_valid_reg/Q
+                         net (fo=39, routed)          0.131     0.705    u_rgb888_to_ycbcr444/ycbcr_valid_w
+    SLICE_X87Y71         LUT2 (Prop_lut2_I0_O)        0.045     0.750 r  u_rgb888_to_ycbcr444/stage0_brightness_offset[2]_i_1/O
+                         net (fo=1, routed)           0.000     0.750    u_ycbcr444_luma_gamma/stage0_brightness_offset_reg[8]_0[2]
+    SLICE_X87Y71         FDCE                                         r  u_ycbcr444_luma_gamma/stage0_brightness_offset_reg[2]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_ycbcr444_luma_gamma/clk
+    SLICE_X87Y71         FDCE                                         r  u_ycbcr444_luma_gamma/stage0_brightness_offset_reg[2]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X87Y71         FDCE (Hold_fdce_C_D)         0.091     0.523    u_ycbcr444_luma_gamma/stage0_brightness_offset_reg[2]
+  -------------------------------------------------------------------
+                         required time                         -0.523    
+                         arrival time                           0.750    
+  -------------------------------------------------------------------
+                         slack                                  0.227    
+
+Slack (MET) :             0.229ns  (arrival time - required time)
+  Source:                 u_brightness_latch/pending_data_reg[0]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_brightness_latch/active_data_reg[0]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.309ns  (logic 0.141ns (45.610%)  route 0.168ns (54.390%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_brightness_latch/clk
+    SLICE_X85Y72         FDCE                                         r  u_brightness_latch/pending_data_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X85Y72         FDCE (Prop_fdce_C_Q)         0.141     0.551 r  u_brightness_latch/pending_data_reg[0]/Q
+                         net (fo=1, routed)           0.168     0.719    u_brightness_latch/pending_data[0]
+    SLICE_X86Y72         FDCE                                         r  u_brightness_latch/active_data_reg[0]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_brightness_latch/clk
+    SLICE_X86Y72         FDCE                                         r  u_brightness_latch/active_data_reg[0]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X86Y72         FDCE (Hold_fdce_C_D)         0.059     0.491    u_brightness_latch/active_data_reg[0]
+  -------------------------------------------------------------------
+                         required time                         -0.491    
+                         arrival time                           0.719    
+  -------------------------------------------------------------------
+                         slack                                  0.229    
+
+Slack (MET) :             0.230ns  (arrival time - required time)
+  Source:                 u_ycbcr444_luma_gamma/stage0_brightness_offset_reg[6]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_ycbcr444_luma_gamma/stage1_brightness_offset_reg[6]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.372ns  (logic 0.209ns (56.167%)  route 0.163ns (43.833%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_ycbcr444_luma_gamma/clk
+    SLICE_X86Y73         FDCE                                         r  u_ycbcr444_luma_gamma/stage0_brightness_offset_reg[6]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X86Y73         FDCE (Prop_fdce_C_Q)         0.164     0.574 r  u_ycbcr444_luma_gamma/stage0_brightness_offset_reg[6]/Q
+                         net (fo=1, routed)           0.163     0.737    u_ycbcr444_luma_gamma/stage0_brightness_offset[6]
+    SLICE_X86Y73         LUT2 (Prop_lut2_I1_O)        0.045     0.782 r  u_ycbcr444_luma_gamma/stage1_brightness_offset[6]_i_1/O
+                         net (fo=1, routed)           0.000     0.782    u_ycbcr444_luma_gamma/stage1_brightness_offset[6]_i_1_n_0
+    SLICE_X86Y73         FDCE                                         r  u_ycbcr444_luma_gamma/stage1_brightness_offset_reg[6]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_ycbcr444_luma_gamma/clk
+    SLICE_X86Y73         FDCE                                         r  u_ycbcr444_luma_gamma/stage1_brightness_offset_reg[6]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X86Y73         FDCE (Hold_fdce_C_D)         0.121     0.553    u_ycbcr444_luma_gamma/stage1_brightness_offset_reg[6]
+  -------------------------------------------------------------------
+                         required time                         -0.553    
+                         arrival time                           0.782    
+  -------------------------------------------------------------------
+                         slack                                  0.230    
+
+Slack (MET) :             0.230ns  (arrival time - required time)
+  Source:                 u_rgb888_to_ycbcr444/m_data_reg[12]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_ycbcr444_luma_gamma/stage0_data_reg[12]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.343ns  (logic 0.186ns (54.305%)  route 0.157ns (45.695%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_rgb888_to_ycbcr444/clk
+    SLICE_X88Y63         FDCE                                         r  u_rgb888_to_ycbcr444/m_data_reg[12]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X88Y63         FDCE (Prop_fdce_C_Q)         0.141     0.551 r  u_rgb888_to_ycbcr444/m_data_reg[12]/Q
+                         net (fo=1, routed)           0.157     0.708    u_rgb888_to_ycbcr444/ycbcr_data_w[12]
+    SLICE_X88Y64         LUT2 (Prop_lut2_I1_O)        0.045     0.753 r  u_rgb888_to_ycbcr444/stage0_data[12]_i_1__0/O
+                         net (fo=1, routed)           0.000     0.753    u_ycbcr444_luma_gamma/stage0_data_reg[23]_0[12]
+    SLICE_X88Y64         FDCE                                         r  u_ycbcr444_luma_gamma/stage0_data_reg[12]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_ycbcr444_luma_gamma/clk
+    SLICE_X88Y64         FDCE                                         r  u_ycbcr444_luma_gamma/stage0_data_reg[12]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X88Y64         FDCE (Hold_fdce_C_D)         0.091     0.523    u_ycbcr444_luma_gamma/stage0_data_reg[12]
+  -------------------------------------------------------------------
+                         required time                         -0.523    
+                         arrival time                           0.753    
+  -------------------------------------------------------------------
+                         slack                                  0.230    
+
+Slack (MET) :             0.231ns  (arrival time - required time)
+  Source:                 u_ycbcr444_luma_gamma/stage2_data_reg[11]/C
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Destination:            u_ycbcr444_luma_gamma/stage3_data_reg[11]/D
+                            (rising edge-triggered cell FDCE clocked by clk  {rise@0.000ns fall@3.610ns period=7.220ns})
+  Path Group:             clk
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk rise@0.000ns - clk rise@0.000ns)
+  Data Path Delay:        0.344ns  (logic 0.209ns (60.737%)  route 0.135ns (39.263%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.022ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.432ns
+    Source Clock Delay      (SCD):    0.410ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.410     0.410    u_ycbcr444_luma_gamma/clk
+    SLICE_X90Y64         FDCE                                         r  u_ycbcr444_luma_gamma/stage2_data_reg[11]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X90Y64         FDCE (Prop_fdce_C_Q)         0.164     0.574 r  u_ycbcr444_luma_gamma/stage2_data_reg[11]/Q
+                         net (fo=1, routed)           0.135     0.709    u_ycbcr444_luma_gamma/stage2_data[11]
+    SLICE_X91Y64         LUT2 (Prop_lut2_I1_O)        0.045     0.754 r  u_ycbcr444_luma_gamma/stage3_data[11]_i_1/O
+                         net (fo=1, routed)           0.000     0.754    u_ycbcr444_luma_gamma/stage3_data[11]_i_1_n_0
+    SLICE_X91Y64         FDCE                                         r  u_ycbcr444_luma_gamma/stage3_data_reg[11]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk rise edge)        0.000     0.000 r  
+                                                      0.000     0.000 r  clk (IN)
+                         net (fo=485, unset)          0.432     0.432    u_ycbcr444_luma_gamma/clk
+    SLICE_X91Y64         FDCE                                         r  u_ycbcr444_luma_gamma/stage3_data_reg[11]/C
+                         clock pessimism              0.000     0.432    
+    SLICE_X91Y64         FDCE (Hold_fdce_C_D)         0.092     0.524    u_ycbcr444_luma_gamma/stage3_data_reg[11]
+  -------------------------------------------------------------------
+                         required time                         -0.524    
+                         arrival time                           0.754    
+  -------------------------------------------------------------------
+                         slack                                  0.231    
+
+
+
+

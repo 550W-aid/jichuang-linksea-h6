@@ -103,22 +103,23 @@ If this algorithm needs further improvement later, continue in this direction in
 
 ## Vivado Verification Status
 
-This update has been checked with the repository OOC signoff flow at the current module clock target:
+This update has been reworked into a deeper pipeline and checked again with the repository OOC signoff flow at the current board-side target clock:
 
 - top: `rgb_ycbcr_gamma_rgb_chain_top`
-- clock: `clk = 20.000ns = 50MHz`
-- report directory: `reports/vivado_ooc/low_light_2026-04-26_50MHz/`
+- clock: `clk = 7.220ns = 138.5MHz`
+- report directory: `reports/vivado_ooc/low_light_2026-04-26_138p5MHz_pipe1/`
 
 Key results:
 
-- `WNS = 5.237ns`
+- `WNS = 0.455ns`
 - `TNS = 0.000ns`
 - `WHS = 0.132ns`
 - `THS = 0.000ns`
 
 Current conclusion:
 
-- this shared low-light stream chain passes OOC timing at 50MHz
+- this shared low-light stream chain passes OOC timing at `138.5MHz`
+- the positive result comes from turning the dark-lift datapath into a multi-stage pipeline instead of keeping both multiplies and the final add in one cycle
 - this is module-level timing evidence, not full-board in-context timing closure
 
 If a later top-level integration changes fanout, placement pressure, or cross-module timing context, run full-project signoff again instead of relying only on this OOC result.
