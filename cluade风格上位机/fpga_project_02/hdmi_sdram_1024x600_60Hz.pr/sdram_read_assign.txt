@@ -1,0 +1,8 @@
+rd_end,read_state,RD_END
+rd_ack,read_state,RD_DATA,cnt_clk,cnt_clk,rd_burst_len
+trcd_end,read_state,RD_TRCD,cnt_clk,TRCD_CLK
+trp_end,read_state,RD_TRP,cnt_clk,TRP_CLK
+tcl_end,read_state,RD_CL,cnt_clk,TCL_CLK
+tread_end,read_state,RD_DATA,cnt_clk,rd_burst_len
+rdburst_end,read_state,RD_DATA,cnt_clk,rd_burst_len
+rd_sdram_data,rd_ack,rd_data_reg

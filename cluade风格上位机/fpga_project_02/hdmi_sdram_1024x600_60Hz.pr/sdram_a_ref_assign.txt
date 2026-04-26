@@ -1,0 +1,4 @@
+aref_ack,aref_state,AREF_PCHA
+aref_end,aref_state,AREF_END
+trp_end,aref_state,AREF_TRP,cnt_clk,TRP_CLK
+trc_end,aref_state,AREF_TRF,cnt_clk,TRC_CLK

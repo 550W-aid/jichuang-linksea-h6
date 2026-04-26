@@ -1,0 +1,1 @@
+report_len_w,report_mode_r,DEBUG_LEN,STATUS_LEN,!rst_n,!report_active_r,!uart_busy_w,~report_mode_r

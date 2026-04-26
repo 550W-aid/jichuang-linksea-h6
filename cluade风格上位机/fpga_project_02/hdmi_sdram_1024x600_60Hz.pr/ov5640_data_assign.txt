@@ -1,0 +1,4 @@
+capture_start_w,capture_enable,~capture_enable_dly
+pic_flag,~ov5640_vsync_dly,ov5640_vsync,!sys_rst_n,!sys_rst_n,!sys_rst_n,!sys_rst_n,!sys_rst_n,~data_flag,!sys_rst_n
+ov5640_data_out,pic_valid,data_out_reg
+ov5640_wr_en,pic_valid,data_flag_dly1

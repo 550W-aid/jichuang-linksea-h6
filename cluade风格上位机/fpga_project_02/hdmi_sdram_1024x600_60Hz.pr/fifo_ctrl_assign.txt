@@ -1,0 +1,2 @@
+wr_ack_fall,wr_ack_dly,~sdram_wr_ack
+rd_ack_fall,rd_ack_dly,~sdram_rd_ack,!sys_rst_n,~bank_flag,!sys_rst_n,!sys_rst_n,!sys_rst_n

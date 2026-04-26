@@ -1,0 +1,6 @@
+wr_end,write_state,WR_END
+wr_ack,write_state,WR_WRITE,write_state,WR_DATA,cnt_clk,wr_burst_len
+trcd_end,write_state,WR_TRCD,cnt_clk,TRCD_CLK
+twrite_end,write_state,WR_DATA,cnt_clk,wr_burst_len
+trp_end,write_state,WR_TRP,cnt_clk,TRP_CLK
+wr_sdram_data,wr_sdram_en,wr_data

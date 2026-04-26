@@ -1,0 +1,14 @@
+i2c_wr_en_w,~cfg_done
+i2c_rd_en_w,cfg_done
+i2c_start_w,cfg_done,dbg_start_r,cfg_start
+i2c_addr_w,cfg_done,dbg_addr_r,cfg_data
+i2c_wr_data_w,cfg_done,cfg_data
+cfg_end_w,i2c_end_w,~cfg_done
+dbg_rd_addr_o,dbg_addr_r
+dbg_rd_data_o,dbg_data_r
+dbg_rd_ack_o,dbg_ack_r
+dbg_rd_busy_o,dbg_busy_r
+dbg_rd_done_o,dbg_done_r
+dbg_rd_timeout_o,dbg_timeout_r
+dbg_rd_state_o,dbg_state_r
+dbg_rd_index_o,dbg_index_r,!sys_rst_n,!sys_rst_n,!cfg_done

@@ -1,0 +1,5 @@
+wait_end,cnt_200us,T_POWER
+init_end,init_state,INIT_END
+trp_end,init_state,INIT_TRP,cnt_clk,TRP_CLK
+trc_end,init_state,INIT_TRF,cnt_clk,TRC_CLK
+tmrd_end,init_state,INIT_TMRD,cnt_clk,TMRD_CLK
