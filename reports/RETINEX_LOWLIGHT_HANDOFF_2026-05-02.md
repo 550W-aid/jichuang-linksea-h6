@@ -105,6 +105,8 @@
 
 - Host GUI root:
   `D:\Work\FPGA\eLinx\ccic_host_gui`
+- Dedicated host-GUI handoff note in git:
+  `D:\Work\Git\jichuang-linksea-h6_publish_tmp\reports\CCIC_HOST_GUI_HANDOFF_2026-05-02.md`
 - Main GUI file changed:
   `D:\Work\FPGA\eLinx\ccic_host_gui\app\main_window.py`
 - User-facing protocol note updated in:
