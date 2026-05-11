@@ -21,3 +21,11 @@ Current ownership split:
 
 Rule:
 - Only call a module `board-ready` or `138.5MHz clean` if it has a fresh timing report recorded in the timing gate document.
+
+Additional utility:
+- `tools/host_pc/codex_task_notify/`
+  - Windows desktop + Android `ntfy` completion notifier for Codex tasks and other command-line jobs
+  - Read:
+    - `docs/codex任务完成的桌面与手机提示.md`
+    - `docs/CODEX_TASK_NOTIFY_DESKTOP_SETUP.md`
+    - `docs/CODEX_TASK_NOTIFY_PHONE_SETUP.md`
