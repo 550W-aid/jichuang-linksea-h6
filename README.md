@@ -2,6 +2,10 @@
 
 This branch currently carries a trimmed `VideoProcess` FPGA project snapshot suitable for collaboration on the H6 image-processing path.
 
+## Active Handoff Requests
+
+- Paper puppet first-stage rework: build an independent H6/eLinx video-chain board candidate before merging into the total project. See `docs/paper_puppet_h6_independent_video_chain_request_20260803.md`.
+
 ## Current status
 
 - Top-level entity: `VP_Top`
