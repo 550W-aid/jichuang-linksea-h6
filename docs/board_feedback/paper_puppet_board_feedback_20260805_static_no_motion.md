@@ -69,3 +69,16 @@ Please answer the previous target-design question with one recommended pattern:
 Based on the current RTL, our fallback guess is still: a large matte saturated
 blue central marker on a white/light-gray background, with decorative puppet
 art around it but not in the same saturated detection color.
+## Printable Target Request
+
+Please also provide one **printable recognition pattern** that the operator can
+cut directly from paper:
+
+- clear outer contour,
+- obvious cut lines,
+- easy-to-print colors,
+- no tiny thin parts,
+- suitable for A4 or similar paper.
+
+We will use this as the physical puppet prototype, so the image should be
+recognition-friendly first and decorative second.
